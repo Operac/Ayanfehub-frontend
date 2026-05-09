@@ -1,0 +1,19 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #008577;
+  --color-background-light: #f7f7f7;
+  --color-background-dark: #1f1f1f;
+  --font-sans: 'Manrope', sans-serif;
+  --font-display: 'Manrope', sans-serif;
+}
+
+/* 
+  Tailwind v4 handles defaults differently. 
+  If you need custom base styles:
+*/
+@layer base {
+  body {
+    @apply bg-background-light text-[#101818];
+  }
+}
