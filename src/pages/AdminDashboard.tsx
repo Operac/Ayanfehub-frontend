@@ -3,8 +3,9 @@ import axios from 'axios';
 import { formatCurrency, cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus } from 'lucide-react';
+import { useNavigate, Link } from 'react-router-dom';
+import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus, ClipboardList } from 'lucide-react';
+import AdminProductApprovalTab from './AdminProductApprovalTab';
 
 interface Order {
   id: string;
@@ -58,7 +59,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED:         'text-red-700 bg-red-50',
 };
 
-type Tab = 'reports' | 'orders' | 'vendors' | 'promos';
+type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -204,16 +205,39 @@ export default function AdminDashboard() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Admin Dashboard</h1>
+      {/* Header row */}
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
+        {/* Quick Create Links */}
+        <div className="flex flex-wrap gap-2">
+          <Link to="/admin/vendors/create"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-colors">
+            <Plus size={12} /> Vendor
+          </Link>
+          <Link to="/admin/artisans/create"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors">
+            <Plus size={12} /> Artisan
+          </Link>
+          <Link to="/admin/products/create"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold hover:bg-purple-100 transition-colors">
+            <Plus size={12} /> Product
+          </Link>
+          <Link to="/admin/shortlets/create"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg text-xs font-semibold hover:bg-orange-100 transition-colors">
+            <Plus size={12} /> Shortlet
+          </Link>
+        </div>
+      </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {(['reports', 'orders', 'vendors', 'promos'] as Tab[]).map(t => (
+      <div className="flex flex-wrap gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+        {(['reports', 'orders', 'vendors', 'promos', 'approvals'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)}
-            className={cn('px-5 py-2 rounded-lg text-sm font-medium capitalize transition',
+            className={cn('px-4 py-2 rounded-lg text-sm font-medium capitalize transition flex items-center gap-1.5',
               tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
             )}>
-            {t}
+            {t === 'approvals' && <ClipboardList size={14} />}
+            {t === 'approvals' ? 'Product Approvals' : t}
           </button>
         ))}
       </div>
@@ -535,6 +559,19 @@ export default function AdminDashboard() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* ── Product Approvals Tab ── */}
+      {tab === 'approvals' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Product Approvals</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Review and approve vendor-submitted products</p>
+            </div>
+          </div>
+          <AdminProductApprovalTab />
         </div>
       )}
     </div>

@@ -7,7 +7,7 @@ import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { formatCurrency, cn } from '../lib/utils';
 import {
   Package, ShoppingBag, Star, TrendingUp,
-  ToggleLeft, ToggleRight, ChevronDown,
+  ToggleLeft, ToggleRight, ChevronDown, Plus, Pencil, X, Check,
 } from 'lucide-react';
 
 interface VendorStats {
@@ -37,6 +37,7 @@ interface VendorStats {
 interface Product {
   id: string;
   name: string;
+  description?: string;
   unit: string;
   isActive: boolean;
   stockQuantity: number | null;
@@ -44,6 +45,17 @@ interface Product {
   priceEntries: { priceNgn: number }[];
   category: { name: string } | null;
   _count: { orderItems: number };
+  approvalStatus?: string;
+  rejectionReason?: string;
+}
+
+interface EditState {
+  productId: string | null;
+  name: string;
+  description: string;
+  unit: string;
+  newPrice: string;
+  stockQuantity: string;
 }
 
 interface OrderItem {
@@ -94,6 +106,10 @@ export default function VendorDashboard() {
   const [orderItems,  setOrderItems]  = useState<OrderItem[]>([]);
   const [loading,     setLoading]     = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
+  const [editState,   setEditState]   = useState<EditState>({
+    productId: null, name: '', description: '', unit: '', newPrice: '', stockQuantity: ''
+  });
+  const [savingEdit,  setSavingEdit]  = useState(false);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -125,6 +141,72 @@ export default function VendorDashboard() {
       showToast(`"${product.name}" ${product.isActive ? 'deactivated' : 'activated'}`, 'success');
     } catch {
       showToast('Failed to update product', 'error');
+    }
+  };
+
+  const openEdit = (product: Product) => {
+    const currentPrice = product.priceEntries[0]?.priceNgn ?? 0;
+    setEditState({
+      productId: product.id,
+      name: product.name,
+      description: product.description || '',
+      unit: product.unit,
+      newPrice: String(currentPrice),
+      stockQuantity: product.stockQuantity !== null ? String(product.stockQuantity) : ''
+    });
+  };
+
+  const closeEdit = () => setEditState(prev => ({ ...prev, productId: null }));
+
+  const saveEdit = async () => {
+    if (!editState.productId) return;
+    setSavingEdit(true);
+    try {
+      const product = products.find(p => p.id === editState.productId)!;
+      const currentPrice = product.priceEntries[0]?.priceNgn ?? 0;
+      const newPriceNum = parseFloat(editState.newPrice);
+
+      // Update product details
+      await axios.patch(`/vendors/me/products/${editState.productId}`, {
+        name: editState.name,
+        description: editState.description,
+        unit: editState.unit,
+      });
+
+      // Update price if changed
+      if (!isNaN(newPriceNum) && newPriceNum > 0 && newPriceNum !== Number(currentPrice)) {
+        await axios.patch(`/vendors/me/products/${editState.productId}/price`, {
+          priceNgn: newPriceNum
+        });
+      }
+
+      // Update stock if changed
+      const newStock = editState.stockQuantity ? parseInt(editState.stockQuantity) : null;
+      if (newStock !== product.stockQuantity) {
+        await axios.patch(`/vendors/me/products/${editState.productId}`, {
+          stockQuantity: newStock ?? undefined
+        });
+      }
+
+      // Refresh the product in local state
+      setProducts(prev => prev.map(p => {
+        if (p.id !== editState.productId) return p;
+        return {
+          ...p,
+          name: editState.name,
+          description: editState.description,
+          unit: editState.unit,
+          stockQuantity: newStock,
+          priceEntries: [{ priceNgn: newPriceNum || Number(currentPrice) }]
+        };
+      }));
+
+      showToast('Product updated successfully', 'success');
+      closeEdit();
+    } catch {
+      showToast('Failed to update product', 'error');
+    } finally {
+      setSavingEdit(false);
     }
   };
 
@@ -243,12 +325,24 @@ export default function VendorDashboard() {
 
         {/* ── Products ── */}
         {tab === 'products' && (
-          <motion.div key="products" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+          <motion.div key="products" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-4">
+            {/* Upload button */}
+            <div className="flex justify-end">
+              <button
+                onClick={() => navigate('/vendor/upload-product')}
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors text-sm"
+              >
+                <Plus size={16} />
+                Upload Product
+              </button>
+            </div>
+
             <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
               {products.length === 0 ? (
                 <div className="py-20 text-center">
                   <Package size={32} className="mx-auto mb-3 text-muted opacity-40" />
                   <p className="text-muted font-medium">No products yet</p>
+                  <p className="text-xs text-muted mt-1">Click "Upload Product" to add your first product</p>
                 </div>
               ) : (
                 <div className="overflow-x-auto">
@@ -259,8 +353,9 @@ export default function VendorDashboard() {
                         <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Category</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Price</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Stock</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Status</th>
                         <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Orders</th>
-                        <th className="px-6 py-4 text-right text-xs font-bold text-muted uppercase tracking-wider">Active</th>
+                        <th className="px-6 py-4 text-right text-xs font-bold text-muted uppercase tracking-wider">Actions</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-50">
@@ -268,6 +363,8 @@ export default function VendorDashboard() {
                         const available = p.stockQuantity !== null
                           ? p.stockQuantity - p.reservedQuantity
                           : null;
+                        const isPending  = p.approvalStatus === 'PENDING_APPROVAL';
+                        const isRejected = p.approvalStatus === 'REJECTED';
                         return (
                           <tr key={p.id} className={cn('hover:bg-surface/60 transition-colors', !p.isActive && 'opacity-50')}>
                             <td className="px-6 py-4">
@@ -287,18 +384,44 @@ export default function VendorDashboard() {
                                 </span>
                               )}
                             </td>
+                            <td className="px-6 py-4">
+                              {isPending && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-amber-50 text-amber-700">
+                                  ⏳ Pending
+                                </span>
+                              )}
+                              {isRejected && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700" title={p.rejectionReason || ''}>
+                                  ❌ Rejected
+                                </span>
+                              )}
+                              {!isPending && !isRejected && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700">
+                                  ✓ Live
+                                </span>
+                              )}
+                            </td>
                             <td className="px-6 py-4 text-muted">{p._count.orderItems}</td>
-                            <td className="px-6 py-4 text-right">
-                              <button
-                                onClick={() => toggleProduct(p)}
-                                className="transition-colors"
-                                title={p.isActive ? 'Deactivate product' : 'Activate product'}
-                              >
-                                {p.isActive
-                                  ? <ToggleRight size={26} className="text-primary hover:text-primary-dark" />
-                                  : <ToggleLeft  size={26} className="text-muted hover:text-ink" />
-                                }
-                              </button>
+                            <td className="px-6 py-4">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => openEdit(p)}
+                                  className="p-1.5 rounded-lg text-muted hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                  title="Edit product"
+                                >
+                                  <Pencil size={15} />
+                                </button>
+                                <button
+                                  onClick={() => toggleProduct(p)}
+                                  className="transition-colors"
+                                  title={p.isActive ? 'Deactivate' : 'Activate'}
+                                >
+                                  {p.isActive
+                                    ? <ToggleRight size={24} className="text-primary hover:text-primary-dark" />
+                                    : <ToggleLeft  size={24} className="text-muted hover:text-ink" />
+                                  }
+                                </button>
+                              </div>
                             </td>
                           </tr>
                         );
@@ -308,6 +431,115 @@ export default function VendorDashboard() {
                 </div>
               )}
             </div>
+
+            {/* Edit Modal */}
+            <AnimatePresence>
+              {editState.productId && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+                  onClick={closeEdit}
+                >
+                  <motion.div
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    className="bg-white rounded-2xl shadow-xl max-w-md w-full p-6"
+                    onClick={e => e.stopPropagation()}
+                  >
+                    <div className="flex items-center justify-between mb-6">
+                      <h3 className="text-lg font-black text-ink">Edit Product</h3>
+                      <button onClick={closeEdit} className="p-2 rounded-xl text-muted hover:bg-gray-100">
+                        <X size={18} />
+                      </button>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Name */}
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase mb-1.5">Product Name</label>
+                        <input
+                          type="text"
+                          value={editState.name}
+                          onChange={e => setEditState(s => ({ ...s, name: e.target.value }))}
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                        />
+                      </div>
+
+                      {/* Description */}
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase mb-1.5">Description</label>
+                        <textarea
+                          value={editState.description}
+                          onChange={e => setEditState(s => ({ ...s, description: e.target.value }))}
+                          rows={2}
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm resize-none"
+                        />
+                      </div>
+
+                      {/* Unit */}
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase mb-1.5">Unit</label>
+                        <input
+                          type="text"
+                          value={editState.unit}
+                          onChange={e => setEditState(s => ({ ...s, unit: e.target.value }))}
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                          placeholder="kg, piece, dozen…"
+                        />
+                      </div>
+
+                      {/* Price (highlighted) */}
+                      <div className="bg-primary/5 border border-primary/20 rounded-xl p-4">
+                        <label className="block text-xs font-bold text-primary uppercase mb-1.5">Price (₦)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-2.5 text-primary font-bold text-sm">₦</span>
+                          <input
+                            type="number"
+                            value={editState.newPrice}
+                            onChange={e => setEditState(s => ({ ...s, newPrice: e.target.value }))}
+                            step="0.01"
+                            className="w-full pl-8 pr-4 py-2.5 border border-primary/30 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm font-bold"
+                          />
+                        </div>
+                        <p className="text-xs text-primary/70 mt-1">Changing price creates a new price entry</p>
+                      </div>
+
+                      {/* Stock */}
+                      <div>
+                        <label className="block text-xs font-bold text-muted uppercase mb-1.5">Stock Quantity</label>
+                        <input
+                          type="number"
+                          value={editState.stockQuantity}
+                          onChange={e => setEditState(s => ({ ...s, stockQuantity: e.target.value }))}
+                          placeholder="Leave blank for unlimited"
+                          className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary text-sm"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex gap-3 mt-6">
+                      <button
+                        onClick={closeEdit}
+                        className="flex-1 px-4 py-2.5 border border-gray-200 text-ink font-semibold rounded-xl hover:bg-gray-50 text-sm"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        onClick={saveEdit}
+                        disabled={savingEdit}
+                        className="flex-1 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark disabled:opacity-50 text-sm inline-flex items-center justify-center gap-2"
+                      >
+                        {savingEdit ? 'Saving…' : (<><Check size={15} /> Save Changes</>)}
+                      </button>
+                    </div>
+                  </motion.div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         )}
 

@@ -22,9 +22,16 @@ const Shortlets      = lazy(() => import('./pages/Shortlets'));
 const ShortletDetail = lazy(() => import('./pages/ShortletDetail'));
 const Orders         = lazy(() => import('./pages/Orders'));
 const Profile        = lazy(() => import('./pages/Profile'));
-const VendorDashboard   = lazy(() => import('./pages/VendorDashboard'));
-const ArtisanDashboard  = lazy(() => import('./pages/ArtisanDashboard'));
-const AdminDashboard    = lazy(() => import('./pages/AdminDashboard'));
+const VendorDashboard     = lazy(() => import('./pages/VendorDashboard'));
+const ArtisanDashboard    = lazy(() => import('./pages/ArtisanDashboard'));
+const AdminDashboard      = lazy(() => import('./pages/AdminDashboard'));
+// New: Vendor product upload
+const VendorProductUpload = lazy(() => import('./pages/VendorProductUpload'));
+// New: Admin creation pages
+const AdminVendorCreate   = lazy(() => import('./pages/AdminVendorCreate'));
+const AdminArtisanCreate  = lazy(() => import('./pages/AdminArtisanCreate'));
+const AdminProductCreate  = lazy(() => import('./pages/AdminProductCreate'));
+const AdminShortletCreate = lazy(() => import('./pages/AdminShortletCreate'));
 
 function PageLoader() {
   return (
@@ -70,6 +77,15 @@ function App() {
                     <Route path="/vendor" element={<VendorDashboard />} />
                     <Route path="/artisan-dashboard" element={<ArtisanDashboard />} />
                     <Route path="/admin" element={<AdminDashboard />} />
+
+                    {/* Vendor: Product Upload */}
+                    <Route path="/vendor/upload-product" element={<VendorProductUpload />} />
+
+                    {/* Admin: Content Creation */}
+                    <Route path="/admin/vendors/create"   element={<AdminVendorCreate />} />
+                    <Route path="/admin/artisans/create"  element={<AdminArtisanCreate />} />
+                    <Route path="/admin/products/create"  element={<AdminProductCreate />} />
+                    <Route path="/admin/shortlets/create" element={<AdminShortletCreate />} />
                   </Route>
                 </Routes>
               </Suspense>
