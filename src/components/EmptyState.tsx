@@ -1,6 +1,7 @@
-import { ReactNode } from 'react';
+import type { ReactNode } from 'react';
 import { PackageSearch } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 
 interface EmptyStateProps {
   icon?: ReactNode;
@@ -15,29 +16,34 @@ interface EmptyStateProps {
 
 export default function EmptyState({ icon, title, description, action }: EmptyStateProps) {
   return (
-    <div className="col-span-full flex flex-col items-center justify-center py-20 px-4 text-center bg-gray-50 rounded-3xl">
-      <div className="text-gray-300 mb-4">
-        {icon ?? <PackageSearch size={56} />}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ type: 'spring', stiffness: 200 }}
+      className="col-span-full flex flex-col items-center justify-center py-20 px-6 text-center"
+    >
+      <div className="size-20 rounded-3xl bg-surface flex items-center justify-center text-muted mb-5 shadow-sm">
+        {icon ?? <PackageSearch size={36} />}
       </div>
-      <h3 className="text-lg font-bold text-gray-700 mb-1">{title}</h3>
-      {description && <p className="text-sm text-gray-500 mb-6 max-w-xs">{description}</p>}
+      <h3 className="text-lg font-black text-ink mb-2">{title}</h3>
+      {description && <p className="text-sm text-muted mb-6 max-w-xs leading-relaxed">{description}</p>}
       {action && (
         action.to ? (
           <Link
             to={action.to}
-            className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition"
+            className="px-7 py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-dark transition-colors shadow-md shadow-primary/20"
           >
             {action.label}
           </Link>
         ) : (
           <button
             onClick={action.onClick}
-            className="bg-primary text-white px-6 py-2.5 rounded-full text-sm font-medium hover:opacity-90 transition"
+            className="px-7 py-3 bg-primary text-white text-sm font-bold rounded-2xl hover:bg-primary-dark transition-colors shadow-md shadow-primary/20"
           >
             {action.label}
           </button>
         )
       )}
-    </div>
+    </motion.div>
   );
 }

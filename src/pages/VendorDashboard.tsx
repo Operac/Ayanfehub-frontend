@@ -3,13 +3,35 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
+import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { formatCurrency, cn } from '../lib/utils';
-import { Package, ShoppingBag, Star, TrendingUp, ToggleLeft, ToggleRight } from 'lucide-react';
+import {
+  Package, ShoppingBag, Star, TrendingUp,
+  ToggleLeft, ToggleRight, ChevronDown,
+} from 'lucide-react';
 
 interface VendorStats {
-  vendor: { id: string; businessName: string; verificationStatus: string; ratingAverage: string | null; totalOrdersFulfilled: number };
-  stats: { activeProducts: number; totalOrderItems: number; totalRevenue: string | number; ratingAverage: string | null; totalOrdersFulfilled: number };
-  recentReviews: { id: string; rating: number; comment: string | null; createdAt: string; user: { fullName: string | null } }[];
+  vendor: {
+    id: string;
+    businessName: string;
+    verificationStatus: string;
+    ratingAverage: string | null;
+    totalOrdersFulfilled: number;
+  };
+  stats: {
+    activeProducts: number;
+    totalOrderItems: number;
+    totalRevenue: string | number;
+    ratingAverage: string | null;
+    totalOrdersFulfilled: number;
+  };
+  recentReviews: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+    user: { fullName: string | null };
+  }[];
 }
 
 interface Product {
@@ -17,6 +39,8 @@ interface Product {
   name: string;
   unit: string;
   isActive: boolean;
+  stockQuantity: number | null;
+  reservedQuantity: number;
   priceEntries: { priceNgn: number }[];
   category: { name: string } | null;
   _count: { orderItems: number };
@@ -28,7 +52,13 @@ interface OrderItem {
   unitPriceNgn: string | number;
   totalPriceNgn: string | number;
   product: { name: string; unit: string };
-  order: { id: string; orderNumber: string; status: string; createdAt: string; user: { fullName: string | null; phone: string } };
+  order: {
+    id: string;
+    orderNumber: string;
+    status: string;
+    createdAt: string;
+    user: { fullName: string | null; phone: string };
+  };
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -40,208 +70,338 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED:         'text-red-700 bg-red-50',
 };
 
+const VERIFICATION_STYLE: Record<string, string> = {
+  VERIFIED:  'bg-emerald-50 text-emerald-700 border-emerald-200',
+  SUSPENDED: 'bg-red-50 text-red-700 border-red-200',
+  PENDING:   'bg-amber-50 text-amber-700 border-amber-200',
+};
+
 type Tab = 'overview' | 'products' | 'orders';
 
-export default function VendorDashboard() {
-  const { user } = useAuth();
-  const { showToast } = useToast();
-  const navigate = useNavigate();
+const stagger: { container: Variants; item: Variants } = {
+  container: { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } },
+  item: { hidden: { opacity: 0, y: 16 }, show: { opacity: 1, y: 0, transition: { type: 'spring', stiffness: 260, damping: 22 } } },
+};
 
-  const [tab, setTab] = useState<Tab>('overview');
-  const [statsData, setStatsData] = useState<VendorStats | null>(null);
-  const [products, setProducts] = useState<Product[]>([]);
-  const [orderItems, setOrderItems] = useState<OrderItem[]>([]);
-  const [loading, setLoading] = useState(true);
+export default function VendorDashboard() {
+  const { user }     = useAuth();
+  const { showToast } = useToast();
+  const navigate     = useNavigate();
+
+  const [tab,         setTab]         = useState<Tab>('overview');
+  const [statsData,   setStatsData]   = useState<VendorStats | null>(null);
+  const [products,    setProducts]    = useState<Product[]>([]);
+  const [orderItems,  setOrderItems]  = useState<OrderItem[]>([]);
+  const [loading,     setLoading]     = useState(true);
+  const [expandedRow, setExpandedRow] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
-
-    const load = async () => {
-      try {
-        const [statsRes] = await Promise.all([
-          axios.get('/vendors/me/stats'),
-        ]);
-        setStatsData(statsRes.data);
-      } catch {
-        showToast('No vendor profile linked to your account', 'error');
-        navigate('/');
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
+    axios.get('/vendors/me/stats')
+      .then(r => setStatsData(r.data))
+      .catch(() => { showToast('No vendor profile linked to your account', 'error'); navigate('/'); })
+      .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   useEffect(() => {
     if (tab === 'products' && products.length === 0) {
-      axios.get('/vendors/me/products').then(r => setProducts(r.data)).catch(() => showToast('Failed to load products', 'error'));
+      axios.get('/vendors/me/products')
+        .then(r => setProducts(r.data))
+        .catch(() => showToast('Failed to load products', 'error'));
     }
     if (tab === 'orders' && orderItems.length === 0) {
-      axios.get('/vendors/me/orders').then(r => setOrderItems(r.data)).catch(() => showToast('Failed to load orders', 'error'));
+      axios.get('/vendors/me/orders')
+        .then(r => setOrderItems(r.data))
+        .catch(() => showToast('Failed to load orders', 'error'));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
   const toggleProduct = async (product: Product) => {
     try {
       await axios.patch(`/vendors/me/products/${product.id}`, { isActive: !product.isActive });
       setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isActive: !p.isActive } : p));
-      showToast(`Product ${product.isActive ? 'deactivated' : 'activated'}`, 'success');
+      showToast(`"${product.name}" ${product.isActive ? 'deactivated' : 'activated'}`, 'success');
     } catch {
       showToast('Failed to update product', 'error');
     }
   };
 
-  if (loading) return (
-    <div className="max-w-6xl mx-auto px-4 py-12 space-y-4">
-      {[1, 2, 3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-xl animate-pulse" />)}
-    </div>
-  );
+  if (loading) {
+    return (
+      <div className="max-w-6xl mx-auto px-4 py-12 space-y-4">
+        {[1, 2, 3].map(i => <div key={i} className="h-24 skeleton rounded-2xl" />)}
+      </div>
+    );
+  }
 
   if (!statsData) return null;
 
   const { stats, vendor, recentReviews } = statsData;
+  const verificationStyle = VERIFICATION_STYLE[vendor.verificationStatus] ?? 'bg-gray-50 text-gray-600 border-gray-200';
 
   return (
-    <div className="max-w-6xl mx-auto px-4 py-8">
-      <div className="flex items-center justify-between mb-6">
+    <div className="max-w-6xl mx-auto px-4 py-10">
+
+      {/* Header */}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex flex-wrap items-start justify-between gap-4 mb-8"
+      >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{vendor.businessName}</h1>
-          <span className={cn('text-xs font-bold px-2 py-0.5 rounded-full mt-1 inline-block',
-            vendor.verificationStatus === 'VERIFIED' ? 'bg-green-100 text-green-700' :
-            vendor.verificationStatus === 'SUSPENDED' ? 'bg-red-100 text-red-700' :
-            'bg-amber-100 text-amber-700'
-          )}>{vendor.verificationStatus}</span>
+          <h1 className="text-3xl font-black text-ink tracking-tight">{vendor.businessName}</h1>
+          <p className="text-muted text-sm mt-1">Vendor Dashboard</p>
         </div>
-      </div>
+        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border ${verificationStyle}`}>
+          <span className={cn('size-1.5 rounded-full', vendor.verificationStatus === 'VERIFIED' ? 'bg-emerald-500' : vendor.verificationStatus === 'SUSPENDED' ? 'bg-red-500' : 'bg-amber-500')} />
+          {vendor.verificationStatus}
+        </span>
+      </motion.div>
 
       {/* Tabs */}
-      <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="flex gap-1 mb-8 bg-surface p-1 rounded-2xl w-fit border border-gray-100"
+      >
         {(['overview', 'products', 'orders'] as Tab[]).map(t => (
-          <button key={t} onClick={() => setTab(t)}
-            className={cn('px-5 py-2 rounded-lg text-sm font-medium capitalize transition',
-              tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
-            )}>
-            {t}
+          <button
+            key={t}
+            onClick={() => setTab(t)}
+            className={cn(
+              'relative px-5 py-2.5 rounded-xl text-sm font-bold capitalize transition-colors',
+              tab === t ? 'text-ink' : 'text-muted hover:text-ink'
+            )}
+          >
+            {tab === t && (
+              <motion.div
+                layoutId="vendor-tab"
+                className="absolute inset-0 bg-white shadow-sm rounded-xl"
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+              />
+            )}
+            <span className="relative z-10">{t}</span>
           </button>
         ))}
-      </div>
+      </motion.div>
 
-      {tab === 'overview' && (
-        <div className="space-y-6">
-          {/* Stats Cards */}
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <StatCard icon={<Package size={20} />} label="Active Products" value={stats.activeProducts} />
-            <StatCard icon={<ShoppingBag size={20} />} label="Total Orders" value={stats.totalOrderItems} />
-            <StatCard icon={<TrendingUp size={20} />} label="Revenue" value={formatCurrency(Number(stats.totalRevenue))} />
-            <StatCard icon={<Star size={20} />} label="Rating" value={stats.ratingAverage ? `${parseFloat(String(stats.ratingAverage)).toFixed(1)} / 5` : 'No ratings'} />
-          </div>
+      <AnimatePresence mode="wait">
 
-          {/* Recent Reviews */}
-          {recentReviews.length > 0 && (
-            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-              <h3 className="font-bold text-gray-900 mb-4">Recent Reviews</h3>
-              <div className="space-y-3">
-                {recentReviews.map(r => (
-                  <div key={r.id} className="border-b border-gray-50 pb-3 last:border-0">
-                    <div className="flex items-center justify-between mb-1">
-                      <p className="text-sm font-medium text-gray-900">{r.user.fullName || 'Customer'}</p>
-                      <div className="flex items-center gap-1">
-                        {[1,2,3,4,5].map(s => (
-                          <span key={s} className={cn('text-xs', s <= r.rating ? 'text-amber-400' : 'text-gray-200')}>★</span>
-                        ))}
+        {/* ── Overview ── */}
+        {tab === 'overview' && (
+          <motion.div key="overview" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
+            {/* Stat cards */}
+            <motion.div
+              variants={stagger.container}
+              initial="hidden"
+              animate="show"
+              className="grid grid-cols-2 lg:grid-cols-4 gap-4"
+            >
+              <StatCard icon={<Package size={20} />} label="Active Products"  value={stats.activeProducts} color="text-primary" />
+              <StatCard icon={<ShoppingBag size={20} />} label="Total Orders"  value={stats.totalOrderItems} color="text-indigo-600" />
+              <StatCard icon={<TrendingUp size={20} />} label="Revenue"        value={formatCurrency(Number(stats.totalRevenue))} color="text-emerald-600" />
+              <StatCard icon={<Star size={20} />}        label="Rating"         value={stats.ratingAverage ? `${parseFloat(String(stats.ratingAverage)).toFixed(1)} ★` : '—'} color="text-amber-500" />
+            </motion.div>
+
+            {/* Recent reviews */}
+            {recentReviews.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2 }}
+                className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6"
+              >
+                <h3 className="font-black text-ink mb-5">Recent Reviews</h3>
+                <div className="space-y-4">
+                  {recentReviews.map(r => (
+                    <div key={r.id} className="flex items-start gap-4 pb-4 border-b border-gray-50 last:border-0 last:pb-0">
+                      <div className="size-9 rounded-2xl bg-surface flex items-center justify-center text-sm font-black text-primary shrink-0">
+                        {(r.user.fullName ?? 'C')[0]}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-2 mb-1">
+                          <p className="text-sm font-bold text-ink">{r.user.fullName || 'Customer'}</p>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map(s => (
+                              <span key={s} className={cn('text-sm', s <= r.rating ? 'text-amber-400' : 'text-gray-200')}>★</span>
+                            ))}
+                          </div>
+                        </div>
+                        {r.comment && <p className="text-xs text-muted leading-relaxed">{r.comment}</p>}
+                        <p className="text-xs text-muted/60 mt-1">{new Date(r.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium' })}</p>
                       </div>
                     </div>
-                    {r.comment && <p className="text-xs text-gray-500 leading-relaxed">{r.comment}</p>}
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-
-      {tab === 'products' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {products.length === 0 ? (
-            <div className="py-16 text-center text-gray-400">
-              <Package size={32} className="mx-auto mb-2 opacity-30" />
-              <p>No products yet</p>
-            </div>
-          ) : (
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500">Product</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500">Category</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500">Current Price</th>
-                  <th className="px-6 py-3 text-left font-medium text-gray-500">Orders</th>
-                  <th className="px-6 py-3 text-right font-medium text-gray-500">Active</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {products.map(p => (
-                  <tr key={p.id} className={cn('hover:bg-gray-50 transition', !p.isActive && 'opacity-50')}>
-                    <td className="px-6 py-4">
-                      <p className="font-medium text-gray-900">{p.name}</p>
-                      <p className="text-xs text-gray-400">per {p.unit}</p>
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">{p.category?.name ?? '—'}</td>
-                    <td className="px-6 py-4 font-semibold text-primary">
-                      {p.priceEntries[0] ? formatCurrency(p.priceEntries[0].priceNgn) : '—'}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">{p._count.orderItems}</td>
-                    <td className="px-6 py-4 text-right">
-                      <button onClick={() => toggleProduct(p)} className="text-gray-400 hover:text-primary transition">
-                        {p.isActive ? <ToggleRight size={24} className="text-primary" /> : <ToggleLeft size={24} />}
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      )}
-
-      {tab === 'orders' && (
-        <div className="space-y-3">
-          {orderItems.length === 0 ? (
-            <div className="py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-100">
-              <ShoppingBag size={32} className="mx-auto mb-2 opacity-30" />
-              <p>No orders yet</p>
-            </div>
-          ) : (
-            orderItems.map(item => (
-              <div key={item.id} className="bg-white border border-gray-100 rounded-xl p-4 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900 text-sm">{item.product.name}</p>
-                  <p className="text-xs text-gray-400">Qty {item.quantity} × {formatCurrency(Number(item.unitPriceNgn))} · {item.order.orderNumber}</p>
-                  <p className="text-xs text-gray-400">{item.order.user.fullName || item.order.user.phone}</p>
+                  ))}
                 </div>
-                <div className="text-right shrink-0">
-                  <p className="font-bold text-gray-900">{formatCurrency(Number(item.totalPriceNgn))}</p>
-                  <span className={cn('text-[10px] font-bold px-2 py-0.5 rounded-full', STATUS_COLORS[item.order.status] ?? 'bg-gray-50 text-gray-600')}>
-                    {item.order.status.replace(/_/g, ' ')}
-                  </span>
-                  <p className="text-[10px] text-gray-400 mt-0.5">{new Date(item.order.createdAt).toLocaleDateString()}</p>
+              </motion.div>
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Products ── */}
+        {tab === 'products' && (
+          <motion.div key="products" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-sm overflow-hidden">
+              {products.length === 0 ? (
+                <div className="py-20 text-center">
+                  <Package size={32} className="mx-auto mb-3 text-muted opacity-40" />
+                  <p className="text-muted font-medium">No products yet</p>
                 </div>
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead className="bg-surface border-b border-gray-100">
+                      <tr>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Product</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Category</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Price</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Stock</th>
+                        <th className="px-6 py-4 text-left text-xs font-bold text-muted uppercase tracking-wider">Orders</th>
+                        <th className="px-6 py-4 text-right text-xs font-bold text-muted uppercase tracking-wider">Active</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-50">
+                      {products.map(p => {
+                        const available = p.stockQuantity !== null
+                          ? p.stockQuantity - p.reservedQuantity
+                          : null;
+                        return (
+                          <tr key={p.id} className={cn('hover:bg-surface/60 transition-colors', !p.isActive && 'opacity-50')}>
+                            <td className="px-6 py-4">
+                              <p className="font-bold text-ink">{p.name}</p>
+                              <p className="text-xs text-muted">per {p.unit}</p>
+                            </td>
+                            <td className="px-6 py-4 text-muted">{p.category?.name ?? '—'}</td>
+                            <td className="px-6 py-4 font-bold text-primary">
+                              {p.priceEntries[0] ? formatCurrency(Number(p.priceEntries[0].priceNgn)) : '—'}
+                            </td>
+                            <td className="px-6 py-4">
+                              {available === null ? (
+                                <span className="text-xs text-muted">Unlimited</span>
+                              ) : (
+                                <span className={cn('text-xs font-bold', available <= 5 ? 'text-red-600' : 'text-ink')}>
+                                  {available} left
+                                </span>
+                              )}
+                            </td>
+                            <td className="px-6 py-4 text-muted">{p._count.orderItems}</td>
+                            <td className="px-6 py-4 text-right">
+                              <button
+                                onClick={() => toggleProduct(p)}
+                                className="transition-colors"
+                                title={p.isActive ? 'Deactivate product' : 'Activate product'}
+                              >
+                                {p.isActive
+                                  ? <ToggleRight size={26} className="text-primary hover:text-primary-dark" />
+                                  : <ToggleLeft  size={26} className="text-muted hover:text-ink" />
+                                }
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* ── Orders ── */}
+        {tab === 'orders' && (
+          <motion.div key="orders" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
+            {orderItems.length === 0 ? (
+              <div className="py-20 text-center bg-white rounded-3xl border border-gray-100">
+                <ShoppingBag size={32} className="mx-auto mb-3 text-muted opacity-40" />
+                <p className="text-muted font-medium">No orders yet</p>
               </div>
-            ))
-          )}
-        </div>
-      )}
+            ) : (
+              orderItems.map(item => {
+                const isExpanded = expandedRow === item.id;
+                return (
+                  <motion.div
+                    key={item.id}
+                    layout
+                    className="bg-white border border-gray-100 rounded-2xl overflow-hidden shadow-sm"
+                  >
+                    <div
+                      className="p-5 flex items-center gap-4 cursor-pointer hover:bg-surface/40 transition-colors"
+                      onClick={() => setExpandedRow(isExpanded ? null : item.id)}
+                    >
+                      <div className="flex-1 min-w-0">
+                        <p className="font-bold text-ink">{item.product.name}</p>
+                        <p className="text-xs text-muted mt-0.5">
+                          {item.order.orderNumber} · {item.order.user.fullName || item.order.user.phone}
+                        </p>
+                      </div>
+                      <div className="text-right shrink-0">
+                        <p className="font-black text-ink">{formatCurrency(Number(item.totalPriceNgn))}</p>
+                        <span className={cn('text-[11px] font-bold px-2 py-0.5 rounded-full mt-1 inline-block',
+                          STATUS_COLORS[item.order.status] ?? 'bg-gray-50 text-gray-600'
+                        )}>
+                          {item.order.status.replace(/_/g, ' ')}
+                        </span>
+                      </div>
+                      <motion.div animate={{ rotate: isExpanded ? 180 : 0 }} transition={{ duration: 0.2 }}>
+                        <ChevronDown size={16} className="text-muted" />
+                      </motion.div>
+                    </div>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: 'auto', opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.2 }}
+                          className="overflow-hidden border-t border-gray-100"
+                        >
+                          <div className="px-5 py-4 bg-surface/40 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <p className="text-xs text-muted mb-0.5">Quantity</p>
+                              <p className="font-bold text-ink">{Number(item.quantity)} {item.product.unit}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted mb-0.5">Unit price</p>
+                              <p className="font-bold text-ink">{formatCurrency(Number(item.unitPriceNgn))}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted mb-0.5">Order date</p>
+                              <p className="font-bold text-ink">{new Date(item.order.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium' })}</p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-muted mb-0.5">Customer</p>
+                              <p className="font-bold text-ink truncate">{item.order.user.fullName || item.order.user.phone}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                );
+              })
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
 
-function StatCard({ icon, label, value }: { icon: React.ReactNode; label: string; value: string | number }) {
+function StatCard({ icon, label, value, color }: { icon: React.ReactNode; label: string; value: string | number; color?: string }) {
   return (
-    <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-5">
-      <div className="flex items-center gap-3 mb-3">
-        <div className="size-9 bg-primary/10 text-primary rounded-lg flex items-center justify-center">{icon}</div>
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">{label}</p>
+    <motion.div variants={stagger.item} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-5">
+      <div className="flex items-center gap-3 mb-4">
+        <div className={cn('size-10 rounded-xl bg-current/10 flex items-center justify-center', color)}>
+          <div className={color}>{icon}</div>
+        </div>
+        <p className="text-xs font-bold text-muted uppercase tracking-wider leading-tight">{label}</p>
       </div>
-      <p className="text-2xl font-black text-gray-900">{value}</p>
-    </div>
+      <p className="text-2xl font-black text-ink">{value}</p>
+    </motion.div>
   );
 }

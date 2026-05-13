@@ -5,6 +5,8 @@ import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/utils';
 import ReviewSection from '../components/ReviewSection';
 
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
 interface PriceEntry {
   priceNgn: number;
 }
@@ -13,17 +15,22 @@ interface Item {
   id: string;
   name: string;
   unit: string;
-  imageUrl: string | null;
+  imageUrls: string[];
   vendorId: string;
   category?: { name: string } | null;
   priceEntries: PriceEntry[];
+}
+
+interface RunDay {
+  dayOfWeek: number;
+  cutoffHour: number;
 }
 
 interface Market {
   id: string;
   name: string;
   imageUrl: string | null;
-  runDays?: { dayOfWeek: string; cutoffTime: string }[];
+  runDays?: RunDay[];
 }
 
 function getItemPrice(item: Item): number {
@@ -58,7 +65,9 @@ export default function MarketDetail() {
   const categories = ['All Items', ...Array.from(new Set(items.map(i => i.category?.name).filter(Boolean)))];
   const filteredItems = activeCategory === 'All Items' ? items : items.filter(i => i.category?.name === activeCategory);
 
-  const nextDelivery = market?.runDays?.[0];
+  const today = new Date().getDay();
+  const sorted = [...(market?.runDays ?? [])].sort((a, b) => a.dayOfWeek - b.dayOfWeek);
+  const nextDelivery = sorted.find(r => r.dayOfWeek >= today) ?? sorted[0];
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-background-light">
@@ -102,10 +111,10 @@ export default function MarketDetail() {
             </div>
             <div className="flex flex-col">
               <p className="text-[#101818] text-lg font-bold">
-                Next Delivery: <span className="text-primary">{nextDelivery?.dayOfWeek ?? 'Saturday'}</span>
+                Next Delivery: <span className="text-primary">{nextDelivery ? DAY_NAMES[nextDelivery.dayOfWeek] : 'Saturday'}</span>
               </p>
               <p className="text-[#5e8d88] text-sm">
-                Order before <span className="font-bold text-red-600">{nextDelivery?.cutoffTime ?? 'Friday 12PM'}</span>
+                Order before <span className="font-bold text-red-600">{nextDelivery ? `${DAY_NAMES[(nextDelivery.dayOfWeek + 6) % 7]} ${nextDelivery.cutoffHour}:00` : 'Friday 12:00'}</span>
               </p>
             </div>
           </div>
@@ -162,7 +171,7 @@ export default function MarketDetail() {
                   <div className="aspect-[4/3] bg-gray-100 overflow-hidden relative">
                     <div
                       className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
-                      style={{ backgroundImage: `url("${item.imageUrl || 'https://placehold.co/400x300?text=No+Image'}")` }}
+                      style={{ backgroundImage: `url("${item.imageUrls?.[0] || 'https://placehold.co/400x300?text=No+Image'}")` }}
                     />
                     <div className="absolute top-2 left-2 bg-primary text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">VETTED</div>
                   </div>
@@ -176,7 +185,7 @@ export default function MarketDetail() {
                         {price > 0 ? formatCurrency(price) : <span className="text-sm text-gray-400">Price TBD</span>}
                       </span>
                       <button
-                        onClick={() => addToCart({ id: item.id, name: item.name, price, unit: item.unit, market_id: id!, quantity: 1 })}
+                        onClick={() => addToCart({ id: item.id, name: item.name, price, unit: item.unit, market_id: id! })}
                         disabled={price === 0}
                         className="size-9 rounded-lg bg-primary/10 text-primary flex items-center justify-center hover:bg-primary hover:text-white transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                       >

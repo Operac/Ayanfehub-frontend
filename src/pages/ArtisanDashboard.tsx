@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency, cn } from '../lib/utils';
-import { Briefcase, Star, Calendar, ToggleLeft, ToggleRight, Edit2, Check, X } from 'lucide-react';
+import { Briefcase, Star, Calendar, ToggleLeft, ToggleRight, Check, X } from 'lucide-react';
 
 interface ArtisanService {
   id: string;
@@ -80,6 +80,7 @@ export default function ArtisanDashboard() {
         navigate('/');
       })
       .finally(() => setLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   useEffect(() => {
@@ -88,6 +89,7 @@ export default function ArtisanDashboard() {
         .then(r => setBookings(r.data))
         .catch(() => showToast('Failed to load bookings', 'error'));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
   const toggleAvailability = async () => {
@@ -246,7 +248,7 @@ export default function ArtisanDashboard() {
           ) : (
             bookings.map(b => {
               let details: Record<string, unknown> = {};
-              try { details = JSON.parse(b.specialInstructions || '{}'); } catch {}
+              try { details = JSON.parse(b.specialInstructions || '{}'); } catch { /* non-JSON instructions */ }
               return (
                 <div key={b.id} className="bg-white border border-gray-100 rounded-xl p-4">
                   <div className="flex items-start justify-between gap-3">
@@ -257,9 +259,9 @@ export default function ArtisanDashboard() {
                       <div>
                         <p className="font-semibold text-gray-900 text-sm">{b.user.fullName || 'Customer'}</p>
                         <p className="text-xs text-gray-400 font-mono">{b.orderNumber}</p>
-                        {details.serviceName && <p className="text-xs text-gray-500 mt-0.5">{String(details.serviceName)}</p>}
-                        {details.date && <p className="text-xs text-gray-400">{new Date(String(details.date)).toLocaleDateString()}</p>}
-                        {details.address && <p className="text-xs text-gray-400">{String(details.address)}</p>}
+                        {!!details.serviceName && <p className="text-xs text-gray-500 mt-0.5">{String(details.serviceName)}</p>}
+                        {!!details.date && <p className="text-xs text-gray-400">{new Date(String(details.date)).toLocaleDateString()}</p>}
+                        {!!details.address && <p className="text-xs text-gray-400">{String(details.address)}</p>}
                       </div>
                     </div>
                     <div className="text-right shrink-0">

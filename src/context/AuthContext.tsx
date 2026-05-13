@@ -8,15 +8,29 @@ axios.defaults.withCredentials = true;
 
 interface User {
   id: string;
+  email: string | null;
+  phone?: string;
+  fullName?: string | null;
+  role: 'ADMIN' | 'CUSTOMER' | 'VENDOR' | 'ARTISAN';
+}
+
+interface LoginCredentials {
   email: string;
-  role: 'admin' | 'customer';
+  password: string;
+}
+
+interface RegisterCredentials {
+  email: string;
+  password: string;
+  fullName: string;
+  role?: string;
 }
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  login: (data: any) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  login: (data: LoginCredentials) => Promise<void>;
+  register: (data: RegisterCredentials) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -30,7 +44,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     try {
       const { data } = await axios.get('/auth/session');
       setUser(data.user);
-    } catch (error) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -41,12 +55,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     checkSession();
   }, []);
 
-  const login = async (credentials: any) => {
+  const login = async (credentials: LoginCredentials) => {
     const { data } = await axios.post('/auth/login', credentials);
     setUser(data.user);
   };
 
-  const register = async (credentials: any) => {
+  const register = async (credentials: RegisterCredentials) => {
     const { data } = await axios.post('/auth/register', credentials);
     setUser(data.user);
   };
@@ -63,6 +77,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) throw new Error('useAuth must be used within an AuthProvider');

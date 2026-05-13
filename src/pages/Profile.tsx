@@ -55,6 +55,7 @@ export default function Profile() {
       }
     };
     load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

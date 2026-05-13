@@ -1,19 +1,34 @@
-import { cn } from '../lib/utils';
+import { motion } from 'framer-motion';
 
-function Bone({ className }: { className?: string }) {
-  return <div className={cn('bg-gray-200 animate-pulse rounded-lg', className)} />;
+function Bone({ className = '' }: { className?: string }) {
+  return <div className={`skeleton rounded-xl ${className}`} />;
 }
 
 export function ProductCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-      <Bone className="h-48 rounded-none" />
-      <div className="p-4 space-y-3">
-        <Bone className="h-4 w-3/4" />
-        <Bone className="h-3 w-1/2" />
-        <div className="flex justify-between items-center pt-2">
-          <Bone className="h-5 w-20" />
-          <Bone className="h-8 w-24 rounded-xl" />
+    <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
+      <Bone className="h-48 rounded-none rounded-t-3xl" />
+      <div className="p-5 space-y-3">
+        <Bone className="h-5 w-3/4" />
+        <Bone className="h-4 w-1/2" />
+        <div className="flex justify-between pt-1">
+          <Bone className="h-6 w-20" />
+          <Bone className="h-9 w-28 rounded-xl" />
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function MarketCardSkeleton() {
+  return (
+    <div className="bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
+      <Bone className="h-52 rounded-none rounded-t-3xl" />
+      <div className="p-5 space-y-3">
+        <Bone className="h-10 rounded-xl" />
+        <div className="flex items-center justify-between">
+          <Bone className="h-4 w-24" />
+          <Bone className="h-9 w-9 rounded-xl" />
         </div>
       </div>
     </div>
@@ -22,29 +37,17 @@ export function ProductCardSkeleton() {
 
 export function ArtisanCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-      <Bone className="h-64 rounded-none" />
-      <div className="p-6 space-y-3">
-        <Bone className="h-5 w-2/3" />
-        <Bone className="h-3 w-1/3" />
-        <div className="flex justify-between items-center pt-4 border-t border-gray-100">
-          <Bone className="h-6 w-24" />
-          <Bone className="h-9 w-28 rounded-xl" />
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <div className="flex items-center gap-4">
+        <Bone className="size-16 rounded-2xl" />
+        <div className="flex-1 space-y-2">
+          <Bone className="h-5 w-3/4" />
+          <Bone className="h-4 w-1/2" />
         </div>
       </div>
-    </div>
-  );
-}
-
-export function OrderCardSkeleton() {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <Bone className="h-4 w-full" />
+      <Bone className="h-4 w-5/6" />
       <div className="flex justify-between">
-        <Bone className="h-5 w-32" />
-        <Bone className="h-6 w-24 rounded-full" />
-      </div>
-      <Bone className="h-3 w-48" />
-      <div className="flex justify-between pt-2">
         <Bone className="h-5 w-20" />
         <Bone className="h-9 w-28 rounded-xl" />
       </div>
@@ -52,37 +55,47 @@ export function OrderCardSkeleton() {
   );
 }
 
-export function MarketCardSkeleton() {
+export function OrderCardSkeleton() {
   return (
-    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100">
-      <Bone className="h-48 rounded-none" />
-      <div className="p-5 space-y-3">
-        <Bone className="h-5 w-3/4" />
-        <Bone className="h-3 w-1/2" />
-        <Bone className="h-3 w-1/3" />
+    <div className="bg-white rounded-3xl border border-gray-100 shadow-sm p-6 space-y-4">
+      <div className="flex justify-between items-start">
+        <div className="space-y-2">
+          <Bone className="h-5 w-32" />
+          <Bone className="h-4 w-24" />
+        </div>
+        <Bone className="h-7 w-28 rounded-full" />
+      </div>
+      <div className="h-px bg-gray-100" />
+      <div className="space-y-2">
+        <Bone className="h-4 w-full" />
+        <Bone className="h-4 w-4/5" />
       </div>
     </div>
   );
 }
 
-interface GridSkeletonProps {
-  count?: number;
-  variant?: 'product' | 'artisan' | 'order' | 'market';
-}
-
-export function GridSkeleton({ count = 6, variant = 'product' }: GridSkeletonProps) {
-  const SkeletonComponent = {
+export function GridSkeleton({ count = 6, variant = 'market' }: { count?: number; variant?: 'market' | 'product' | 'artisan' | 'order' }) {
+  const SkeletonMap = {
+    market:  MarketCardSkeleton,
     product: ProductCardSkeleton,
     artisan: ArtisanCardSkeleton,
-    order: OrderCardSkeleton,
-    market: MarketCardSkeleton,
-  }[variant];
+    order:   OrderCardSkeleton,
+  };
+  const Card = SkeletonMap[variant];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className={`grid gap-6 ${
+        variant === 'order'
+          ? 'grid-cols-1 max-w-2xl'
+          : 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3'
+      }`}
+    >
       {Array.from({ length: count }).map((_, i) => (
-        <SkeletonComponent key={i} />
+        <Card key={i} />
       ))}
-    </div>
+    </motion.div>
   );
 }

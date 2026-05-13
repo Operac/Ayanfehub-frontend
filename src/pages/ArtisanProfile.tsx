@@ -55,6 +55,7 @@ export default function ArtisanProfile() {
       }
     };
     if (id) fetchProfile();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   const handleBook = async () => {
@@ -67,7 +68,7 @@ export default function ArtisanProfile() {
     try {
       await axios.post('/artisans/book', {
         artisanId: id,
-        serviceName: selectedService.name,
+        serviceName: selectedService.serviceName,
         price: selectedService.priceNgn,
         date: new Date(bookingDate).toISOString(),
         address,

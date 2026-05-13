@@ -4,7 +4,7 @@ import { formatCurrency, cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
-import { TrendingUp, Package, Users, ShoppingBag, ChevronDown } from 'lucide-react';
+import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus } from 'lucide-react';
 
 interface Order {
   id: string;
@@ -33,6 +33,20 @@ interface Vendor {
   _count: { products: number; orderItems: number };
 }
 
+interface PromoCode {
+  id: string;
+  code: string;
+  discountType: 'FIXED' | 'PERCENTAGE';
+  discountValue: number;
+  description: string | null;
+  minOrderNgn: number | null;
+  maxUsesTotal: number | null;
+  usedCount: number;
+  isActive: boolean;
+  validFrom: string | null;
+  validTo: string | null;   // Prisma field name
+}
+
 const ORDER_STATUSES = ['PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'SOURCING', 'AT_HUB', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
 const STATUS_COLORS: Record<string, string> = {
   DELIVERED:         'text-green-700 bg-green-50',
@@ -44,7 +58,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED:         'text-red-700 bg-red-50',
 };
 
-type Tab = 'reports' | 'orders' | 'vendors';
+type Tab = 'reports' | 'orders' | 'vendors' | 'promos';
 
 export default function AdminDashboard() {
   const { user } = useAuth();
@@ -55,17 +69,24 @@ export default function AdminDashboard() {
   const [reports, setReports] = useState<Reports | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [promos, setPromos] = useState<PromoCode[]>([]);
   const [loadingReports, setLoadingReports] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
+  const [isExporting, setIsExporting] = useState(false);
+  const [showPromoForm, setShowPromoForm] = useState(false);
+  const [promoForm, setPromoForm] = useState({ code: '', discountType: 'FIXED', discountValue: '', description: '', minOrderNgn: '', maxUsesTotal: '', validFrom: '', validUntil: '' });
 
   useEffect(() => {
-    if (!user || user.role !== 'admin') { navigate('/'); return; }
+    if (!user || user.role !== 'ADMIN') { navigate('/'); return; }
     loadReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
   useEffect(() => {
     if (tab === 'orders' && orders.length === 0) loadOrders();
     if (tab === 'vendors' && vendors.length === 0) loadVendors();
+    if (tab === 'promos' && promos.length === 0) loadPromos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
   const loadReports = async () => {
@@ -81,8 +102,8 @@ export default function AdminDashboard() {
 
   const loadOrders = async () => {
     try {
-      const { data } = await axios.get('/admin/orders');
-      setOrders(data);
+      const { data } = await axios.get('/admin/orders', { params: { limit: 50 } });
+      setOrders(data.orders ?? data); // handle paginated { orders } or plain array
     } catch {
       showToast('Failed to load orders', 'error');
     }
@@ -110,6 +131,67 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleExportCSV = async () => {
+    setIsExporting(true);
+    try {
+      const res = await axios.get('/admin/reports/export', { responseType: 'blob' });
+      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ayanfe-orders-${new Date().toISOString().split('T')[0]}.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      showToast('CSV exported successfully', 'success');
+    } catch {
+      showToast('Failed to export CSV', 'error');
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const loadPromos = async () => {
+    try {
+      const { data } = await axios.get('/admin/promos');
+      setPromos(data);
+    } catch {
+      showToast('Failed to load promo codes', 'error');
+    }
+  };
+
+  const handleTogglePromo = async (id: string) => {
+    try {
+      const { data } = await axios.patch(`/admin/promos/${id}/toggle`);
+      setPromos(prev => prev.map(p => p.id === id ? { ...p, isActive: data.promo.isActive } : p));
+      showToast(`Promo ${data.promo.isActive ? 'enabled' : 'disabled'}`, 'success');
+    } catch {
+      showToast('Failed to toggle promo', 'error');
+    }
+  };
+
+  const handleCreatePromo = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const payload = {
+        code: promoForm.code.trim().toUpperCase(),
+        discountType: promoForm.discountType,
+        discountValue: Number(promoForm.discountValue),
+        description: promoForm.description || undefined,
+        minOrderNgn: promoForm.minOrderNgn ? Number(promoForm.minOrderNgn) : undefined,
+        maxUsesTotal: promoForm.maxUsesTotal ? Number(promoForm.maxUsesTotal) : undefined,
+        validFrom: promoForm.validFrom || undefined,
+        validUntil: promoForm.validUntil || undefined,
+      };
+      const { data } = await axios.post('/admin/promos', payload);
+      setPromos(prev => [data.promo, ...prev]);
+      setShowPromoForm(false);
+      setPromoForm({ code: '', discountType: 'FIXED', discountValue: '', description: '', minOrderNgn: '', maxUsesTotal: '', validFrom: '', validUntil: '' });
+      showToast('Promo code created', 'success');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to create promo', 'error');
+    }
+  };
+
   const handleVendorVerification = async (vendorId: string, status: string) => {
     try {
       await axios.patch('/admin/vendors/verification', { vendorId, status });
@@ -126,7 +208,7 @@ export default function AdminDashboard() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {(['reports', 'orders', 'vendors'] as Tab[]).map(t => (
+        {(['reports', 'orders', 'vendors', 'promos'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={cn('px-5 py-2 rounded-lg text-sm font-medium capitalize transition',
               tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
@@ -191,8 +273,16 @@ export default function AdminDashboard() {
 
             {/* Recent Orders */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="font-bold text-gray-900">Recent Orders</h3>
+                <button
+                  onClick={handleExportCSV}
+                  disabled={isExporting}
+                  className="flex items-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl px-4 py-2 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <Download size={15} />
+                  {isExporting ? 'Exporting…' : 'Export CSV'}
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -274,6 +364,127 @@ export default function AdminDashboard() {
                 )}
               </tbody>
             </table>
+          </div>
+        </div>
+      )}
+
+      {/* ── Promos Tab ── */}
+      {tab === 'promos' && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-lg font-bold text-gray-900">Promo Codes</h2>
+            <button
+              onClick={() => setShowPromoForm(v => !v)}
+              className="flex items-center gap-2 text-sm font-semibold bg-black text-white px-4 py-2.5 rounded-xl hover:bg-gray-800 transition"
+            >
+              <Plus size={15} /> New Promo
+            </button>
+          </div>
+
+          {showPromoForm && (
+            <form onSubmit={handleCreatePromo} className="bg-white border border-gray-100 rounded-2xl shadow-sm p-6 grid grid-cols-2 gap-4">
+              <div className="col-span-2 sm:col-span-1">
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Code *</label>
+                <input required value={promoForm.code} onChange={e => setPromoForm(p => ({ ...p, code: e.target.value }))}
+                  placeholder="SAVE20" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm uppercase tracking-widest" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Type *</label>
+                <select value={promoForm.discountType} onChange={e => setPromoForm(p => ({ ...p, discountType: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm">
+                  <option value="FIXED">Fixed (₦)</option>
+                  <option value="PERCENTAGE">Percentage (%)</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Value *</label>
+                <input required type="number" min="1" value={promoForm.discountValue} onChange={e => setPromoForm(p => ({ ...p, discountValue: e.target.value }))}
+                  placeholder={promoForm.discountType === 'FIXED' ? '500' : '15'} className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Min Order (₦)</label>
+                <input type="number" min="0" value={promoForm.minOrderNgn} onChange={e => setPromoForm(p => ({ ...p, minOrderNgn: e.target.value }))}
+                  placeholder="Optional" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Max Uses</label>
+                <input type="number" min="1" value={promoForm.maxUsesTotal} onChange={e => setPromoForm(p => ({ ...p, maxUsesTotal: e.target.value }))}
+                  placeholder="Unlimited" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Valid From</label>
+                <input type="date" value={promoForm.validFrom} onChange={e => setPromoForm(p => ({ ...p, validFrom: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Valid Until</label>
+                <input type="date" value={promoForm.validUntil} onChange={e => setPromoForm(p => ({ ...p, validUntil: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div className="col-span-2">
+                <label className="block text-xs font-semibold text-gray-500 mb-1">Description</label>
+                <input value={promoForm.description} onChange={e => setPromoForm(p => ({ ...p, description: e.target.value }))}
+                  placeholder="Optional label shown to users" className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm" />
+              </div>
+              <div className="col-span-2 flex gap-3 justify-end">
+                <button type="button" onClick={() => setShowPromoForm(false)} className="text-sm text-gray-500 hover:text-gray-800 transition px-4 py-2">Cancel</button>
+                <button type="submit" className="text-sm font-semibold bg-black text-white px-6 py-2.5 rounded-xl hover:bg-gray-800 transition">Create</button>
+              </div>
+            </form>
+          )}
+
+          <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Code</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Type</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Value</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Min Order</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Uses</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Expires</th>
+                    <th className="px-5 py-3 text-right font-medium text-gray-500">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {promos.map(p => (
+                    <tr key={p.id} className="hover:bg-gray-50">
+                      <td className="px-5 py-3">
+                        <div className="flex items-center gap-2">
+                          <Tag size={13} className="text-gray-400" />
+                          <span className="font-mono font-bold text-gray-900 tracking-wider">{p.code}</span>
+                          {p.description && <span className="text-xs text-gray-400">{p.description}</span>}
+                        </div>
+                      </td>
+                      <td className="px-5 py-3 text-gray-500">{p.discountType}</td>
+                      <td className="px-5 py-3 font-semibold text-gray-900">
+                        {p.discountType === 'FIXED' ? formatCurrency(Number(p.discountValue)) : `${p.discountValue}%`}
+                      </td>
+                      <td className="px-5 py-3 text-gray-500">{p.minOrderNgn ? formatCurrency(Number(p.minOrderNgn)) : '—'}</td>
+                      <td className="px-5 py-3 text-gray-500">
+                        {p.usedCount}{p.maxUsesTotal ? ` / ${p.maxUsesTotal}` : ''}
+                      </td>
+                      <td className="px-5 py-3 text-gray-400 text-xs">
+                        {p.validTo ? new Date(p.validTo).toLocaleDateString() : '—'}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <button onClick={() => handleTogglePromo(p.id)}
+                          className={cn('flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg transition ml-auto',
+                            p.isActive ? 'bg-green-50 text-green-700 hover:bg-green-100' : 'bg-gray-100 text-gray-500 hover:bg-gray-200'
+                          )}>
+                          {p.isActive ? <ToggleRight size={14} /> : <ToggleLeft size={14} />}
+                          {p.isActive ? 'Active' : 'Inactive'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                  {promos.length === 0 && (
+                    <tr><td colSpan={7} className="px-5 py-12 text-center text-gray-400">No promo codes yet</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
