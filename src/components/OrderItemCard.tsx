@@ -27,7 +27,8 @@ const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> =
 };
 
 export default function OrderItemCard({
-  id,
+  // id is kept for API compatibility / future tracking features
+  id: _unused,
   productName,
   productImage,
   quantity,

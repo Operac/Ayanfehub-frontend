@@ -41,7 +41,8 @@ const STATUS_DESCRIPTIONS: Record<string, string> = {
 export default function OrderStatusTracker({
   orderId,
   initialStatus = 'PENDING_PAYMENT',
-  onStatusChange,
+  // onStatusChange is kept for future integration with parent components
+  onStatusChange: _unused,
 }: OrderStatusTrackerProps) {
   const { liveStatus, statusLabel } = useOrderSocket(orderId);
   const currentStatus = liveStatus || initialStatus;
