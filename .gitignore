@@ -15,6 +15,7 @@ dist-ssr
 # Environment — contains Flutterwave keys and API URLs
 .env
 .env.*
+.env.production
 !.env.example
 
 # Vite cache
@@ -30,6 +31,8 @@ dist-ssr
 .DS_Store
 *.suo
 *.ntvs*
+*.njsproj.user
+*.webproj.user
 *.njsproj
 *.sln
 *.sw?

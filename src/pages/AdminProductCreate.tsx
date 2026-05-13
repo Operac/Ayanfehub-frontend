@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
 
 interface Vendor { id: string; businessName: string; market: { name: string } }
+interface Category { id: string; name: string }
 
 const UNITS = ['kg', 'piece', 'dozen', 'bag (25kg)', 'bag (50kg)', 'crate', 'carton', 'liter'];
 
@@ -11,12 +12,14 @@ export default function AdminProductCreate() {
   const { showToast } = useToast();
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     vendorId: '',
     name: '',
     description: '',
     unit: 'kg',
+    categoryId: '',
     priceNgn: '',
     stockQuantity: '',
     approvalStatus: 'APPROVED'
@@ -27,6 +30,11 @@ export default function AdminProductCreate() {
       .then(r => r.json())
       .then(data => setVendors(data))
       .catch(() => showToast('Failed to load vendors', 'error'));
+
+    fetch(`${import.meta.env.VITE_API_BASE_URL}/marketplace/categories`)
+      .then(r => r.json())
+      .then(setCategories)
+      .catch(() => {});
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -51,6 +59,7 @@ export default function AdminProductCreate() {
           name: formData.name,
           description: formData.description || undefined,
           unit: formData.unit,
+          categoryId: formData.categoryId || undefined,
           priceNgn: parseFloat(formData.priceNgn),
           stockQuantity: formData.stockQuantity ? parseInt(formData.stockQuantity) : undefined,
           approvalStatus: formData.approvalStatus
@@ -114,18 +123,28 @@ export default function AdminProductCreate() {
               </select>
             </div>
             <div>
+              <label className="block text-sm font-semibold text-ink mb-2">Category</label>
+              <select name="categoryId" value={formData.categoryId} onChange={handleChange}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary">
+                <option value="">Select category</option>
+                {categories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div>
               <label className="block text-sm font-semibold text-ink mb-2">Price (₦) *</label>
               <input type="number" name="priceNgn" value={formData.priceNgn} onChange={handleChange}
                 placeholder="0.00" step="0.01" required
                 className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" />
             </div>
-          </div>
-
-          <div className="mb-4">
-            <label className="block text-sm font-semibold text-ink mb-2">Stock Quantity</label>
-            <input type="number" name="stockQuantity" value={formData.stockQuantity} onChange={handleChange}
-              placeholder="Leave blank for unlimited"
-              className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" />
+            <div>
+              <label className="block text-sm font-semibold text-ink mb-2">Stock Quantity</label>
+              <input type="number" name="stockQuantity" value={formData.stockQuantity} onChange={handleChange}
+                placeholder="Unlimited if blank"
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary" />
+            </div>
           </div>
 
           <div className="mb-6">
