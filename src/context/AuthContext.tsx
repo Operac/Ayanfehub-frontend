@@ -2,8 +2,7 @@ import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import axios from 'axios';
 
-// Configure Axios defaults
-axios.defaults.baseURL = 'http://localhost:5000/api';
+// Axios baseURL + withCredentials are set in main.tsx from VITE_API_BASE_URL
 axios.defaults.withCredentials = true;
 
 interface User {
