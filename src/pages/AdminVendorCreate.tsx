@@ -81,7 +81,7 @@ export default function AdminVendorCreate() {
       }
 
       showToast('Vendor created successfully', 'success');
-      setTimeout(() => navigate('/admin-dashboard'), 1500);
+      setTimeout(() => navigate('/admin'), 1500);
     } catch (error) {
       showToast(error instanceof Error ? error.message : 'Failed to create vendor', 'error');
     } finally {
@@ -230,7 +230,7 @@ export default function AdminVendorCreate() {
           <div className="flex gap-3 mt-8">
             <button
               type="button"
-              onClick={() => navigate('/admin-dashboard')}
+              onClick={() => navigate('/admin')}
               className="flex-1 px-4 py-3 border border-gray-200 text-ink font-semibold rounded-xl hover:bg-gray-50"
             >
               Cancel

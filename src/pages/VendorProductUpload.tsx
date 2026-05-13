@@ -82,7 +82,7 @@ export default function VendorProductUpload() {
       }
 
       showToast('Product submitted for approval! Admin will review within 24 hours.', 'success');
-      setTimeout(() => navigate('/vendor-dashboard'), 1500);
+      setTimeout(() => navigate('/vendor'), 1500);
     } catch (error) {
       showToast('Failed to upload product. Please try again.', 'error');
     } finally {
@@ -235,7 +235,7 @@ export default function VendorProductUpload() {
           <div className="flex gap-3">
             <button
               type="button"
-              onClick={() => navigate('/vendor-dashboard')}
+              onClick={() => navigate('/vendor')}
               className="flex-1 px-4 py-3 border border-gray-200 text-ink font-semibold rounded-xl hover:bg-gray-50 transition-colors"
             >
               Cancel
