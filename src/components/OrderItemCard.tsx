@@ -75,7 +75,7 @@ export default function OrderItemCard({
             {ratingAverage !== undefined && ratingAverage > 0 && (
               <div className="flex items-center gap-1 text-amber-600">
                 <Star size={12} className="fill-amber-500" />
-                <span className="text-xs font-semibold">{ratingAverage.toFixed(1)}</span>
+                <span className="text-xs font-semibold">{parseFloat(String(ratingAverage)).toFixed(1)}</span>
               </div>
             )}
           </div>

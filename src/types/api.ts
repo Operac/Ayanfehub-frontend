@@ -63,7 +63,7 @@ export interface Vendor {
   id: string;
   businessName: string;
   isVerified: boolean;
-  ratingAverage: number | null;
+  ratingAverage: number | string | null;
 }
 
 export interface Product {
@@ -98,7 +98,7 @@ export interface Artisan {
   portfolioImages: string[];
   isVerified: boolean;
   isAvailable: boolean;
-  ratingAverage: number | null;
+  ratingAverage: number | string | null;
   services?: ArtisanService[];
   reviews?: Review[];
 }

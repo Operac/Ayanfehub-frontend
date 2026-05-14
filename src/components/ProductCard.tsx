@@ -85,7 +85,7 @@ export default function ProductCard({
         {ratingAverage !== undefined && ratingAverage > 0 && (
           <div className="flex items-center gap-1 mb-3 text-xs text-amber-600">
             <Star size={12} className="fill-amber-500" />
-            <span className="font-semibold">{ratingAverage.toFixed(1)}</span>
+            <span className="font-semibold">{parseFloat(String(ratingAverage)).toFixed(1)}</span>
           </div>
         )}
 

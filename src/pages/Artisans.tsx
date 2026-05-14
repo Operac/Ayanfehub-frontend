@@ -112,7 +112,7 @@ export default function Artisans() {
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                   <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-black text-ink shadow-sm flex items-center gap-1">
                     <Star size={11} className="text-amber-500 fill-amber-500" />
-                    {artisan.ratingAverage ? artisan.ratingAverage.toFixed(1) : 'New'}
+                    {artisan.ratingAverage ? parseFloat(String(artisan.ratingAverage)).toFixed(1) : 'New'}
                   </div>
                   <div className={cn(
                     'absolute top-4 left-4 px-2.5 py-1 rounded-full text-xs font-bold',
