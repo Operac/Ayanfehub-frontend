@@ -51,6 +51,9 @@ const CleaningServices    = lazy(() => import('./pages/CleaningServices'));
 const CleaningRequestForm = lazy(() => import('./pages/CleaningRequestForm'));
 const GroupBuyList        = lazy(() => import('./pages/GroupBuyList'));
 const GroupBuyDetail      = lazy(() => import('./pages/GroupBuyDetail'));
+const About               = lazy(() => import('./pages/About'));
+const Partner             = lazy(() => import('./pages/Partner'));
+const Terms               = lazy(() => import('./pages/Terms'));
 
 function PageLoader() {
   return (
@@ -113,6 +116,11 @@ function App() {
                     {/* Cleaning Services */}
                     <Route path="/cleaning" element={<CleaningServices />} />
                     <Route path="/cleaning/book" element={<RequireAuth><CleaningRequestForm /></RequireAuth>} />
+
+                    {/* Legal & Static Information */}
+                    <Route path="/about" element={<About />} />
+                    <Route path="/partner" element={<Partner />} />
+                    <Route path="/terms" element={<Terms />} />
                   </Route>
                 </Routes>
               </Suspense>

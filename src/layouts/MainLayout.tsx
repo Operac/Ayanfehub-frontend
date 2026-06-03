@@ -320,14 +320,14 @@ export default function MainLayout() {
               { label: 'Cleaning Services', href: '/cleaning'  },
             ]} />
             <FooterCol title="Company" links={[
-              { label: 'About Us',         href: '/'           },
+              { label: 'About Us',         href: '/about'      },
               { label: 'Become a Vendor',  href: '/marketplace' },
-              { label: 'Partner with Us',  href: '/'           },
+              { label: 'Partner with Us',  href: '/partner'    },
             ]} />
             <FooterCol title="Support" links={[
               { label: 'Help Center',    href: '/orders'      },
               { label: 'Delivery Areas', href: '/marketplace' },
-              { label: 'Terms of Use',   href: '/'            },
+              { label: 'Terms of Use',   href: '/terms'       },
             ]} />
           </div>
 
