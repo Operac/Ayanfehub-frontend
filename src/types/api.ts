@@ -112,6 +112,7 @@ export interface Apartment {
   images: string[];
   isAvailable: boolean;
   amenities: string[];
+  ratingAverage?: number | string | null;
 }
 
 export type OrderStatus =

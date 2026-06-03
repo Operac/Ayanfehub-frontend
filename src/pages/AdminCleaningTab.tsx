@@ -6,7 +6,7 @@ import {
   Home, Building2, HardHat, ChevronDown, X,
   MapPin, Clock, Camera, User, Phone,
   CheckCircle2, Loader2, Search, Calendar,
-  ClipboardList, Settings, AlertTriangle, Banknote, Eye,
+  ClipboardList, Settings, AlertTriangle, Eye,
 } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';
 import { useToast } from '../context/ToastContext';

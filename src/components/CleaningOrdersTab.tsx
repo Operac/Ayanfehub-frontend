@@ -7,8 +7,8 @@ import { useFlutterwave, closePaymentModal } from 'flutterwave-react-v3';
 import type { FlutterWaveResponse } from 'flutterwave-react-v3/dist/types';
 import {
   Home, Building2, HardHat, Clock, MapPin, CreditCard,
-  ChevronDown, AlertCircle, CheckCircle2, Loader2,
-  Camera, FileText, User, Phone, X,
+  ChevronDown, AlertCircle, Loader2,
+  Camera, FileText, User, Phone,
 } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';
 import { useToast } from '../context/ToastContext';
@@ -95,7 +95,6 @@ function CleaningCard({ request }: { request: CleaningRequest }) {
   const [expanded, setExpanded] = useState(false);
   const [payConfig, setPayConfig] = useState<any>(null);
   const [loadingPay, setLoadingPay] = useState(false);
-  const [cancelling, setCancelling] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState(false);
   const { showToast } = useToast();
   const queryClient = useQueryClient();
@@ -103,7 +102,6 @@ function CleaningCard({ request }: { request: CleaningRequest }) {
   const meta = CAT_META[request.category];
   const Icon = meta.icon;
   const statusCfg = STATUS_CFG[request.status] ?? { label: request.status, color: 'text-gray-600 bg-gray-50', description: '' };
-  const timelineIdx = TIMELINE.indexOf(request.status);
   const isQuoted         = request.status === 'QUOTED';
   const isInspectionSet  = request.status === 'INSPECTION_SCHEDULED';
   const canCancel        = ['PENDING_QUOTE', 'INSPECTION_SCHEDULED', 'QUOTED'].includes(request.status);

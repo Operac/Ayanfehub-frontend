@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Plus, Users, Check, X, ChevronDown, ChevronUp,
+  Plus, Check, X, ChevronDown, ChevronUp,
   AlertTriangle, Eye, Pencil, Ban, Package
 } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';

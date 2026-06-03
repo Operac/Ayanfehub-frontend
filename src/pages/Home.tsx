@@ -6,7 +6,7 @@ import { useRef } from 'react';
 import MarketCard from '../components/MarketCard';
 import { GridSkeleton } from '../components/LoadingSkeleton';
 import type { Market } from '../types/api';
-import { ArrowRight, ShoppingBag, Wrench, Home as HomeIcon, Star, Zap, Shield, Clock, Users, ChevronRight } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Wrench, Home as HomeIcon, Star, Zap, Shield, Clock, Users, ChevronRight, SprayCan } from 'lucide-react';
 import { formatCurrency, cn } from '../lib/utils';
 import { useCountdown } from '../hooks/useCountdown';
 import Card3D from '../components/Card3D';
@@ -57,6 +57,14 @@ const SERVICES = [
     label: 'Short-lets',
     desc: 'Furnished apartments for short stays anywhere in Lagos.',
     href: '/shortlets',
+  },
+  {
+    icon: SprayCan,
+    color: 'from-emerald-500 to-teal-600',
+    glow: 'shadow-emerald-500/30',
+    label: 'Cleaning',
+    desc: 'Professional cleaning for homes, offices, & construction sites.',
+    href: '/cleaning',
   },
 ];
 
@@ -248,7 +256,7 @@ export default function Home() {
             className="text-lg md:text-xl text-muted max-w-2xl mx-auto mb-10 leading-relaxed"
           >
             Shop from Balogun, Mile 12, Eko, and 20+ Lagos markets. Book artisans.
-            Find short-lets. All in one platform built for Lagos life.
+            Find short-lets or book professional cleaning. All in one platform built for Lagos life.
           </motion.p>
 
           {/* CTA buttons */}
@@ -333,7 +341,7 @@ export default function Home() {
             One platform,<br className="sm:hidden" /> every need.
           </h2>
           <p className="text-muted text-lg max-w-xl mx-auto">
-            Everything Lagos needs — market goods, skilled hands, and a place to stay.
+            Everything Lagos needs — market goods, skilled hands, professional cleaning, and a place to stay.
           </p>
         </motion.div>
 
@@ -342,7 +350,7 @@ export default function Home() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: '-60px' }}
-          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6"
         >
           {SERVICES.map(s => (
             <motion.div key={s.label} variants={stagger.item}>
