@@ -94,7 +94,11 @@ const SOCKET_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.re
 let sharedSocket: Socket | null = null;
 function getSocket(): Socket {
   if (!sharedSocket || !sharedSocket.connected) {
-    sharedSocket = io(SOCKET_URL, { withCredentials: true });
+    const token = localStorage.getItem('token');
+    sharedSocket = io(SOCKET_URL, {
+      withCredentials: true,
+      auth: token ? { token } : undefined
+    });
   }
   return sharedSocket;
 }

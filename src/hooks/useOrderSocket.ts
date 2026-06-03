@@ -22,7 +22,11 @@ export function useOrderSocket(orderId: string | null) {
   useEffect(() => {
     if (!orderId) return;
 
-    const socket = io(SOCKET_URL, { withCredentials: true });
+    const token = localStorage.getItem('token');
+    const socket = io(SOCKET_URL, {
+      withCredentials: true,
+      auth: token ? { token } : undefined
+    });
     socketRef.current = socket;
 
     socket.on('connect', () => {

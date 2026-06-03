@@ -43,10 +43,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const checkSession = async () => {
     try {
+      const localToken = localStorage.getItem('token');
+      if (localToken) {
+        axios.defaults.headers.common['Authorization'] = `Bearer ${localToken}`;
+      }
       const { data } = await axios.get('/auth/session');
       setUser(data.user);
     } catch {
       setUser(null);
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
     } finally {
       setLoading(false);
     }
@@ -59,16 +65,29 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const login = async (credentials: LoginCredentials) => {
     const { data } = await axios.post('/auth/login', credentials);
     setUser(data.user);
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+    }
   };
 
   const register = async (credentials: RegisterCredentials) => {
     const { data } = await axios.post('/auth/register', credentials);
     setUser(data.user);
+    if (data.token) {
+      localStorage.setItem('token', data.token);
+      axios.defaults.headers.common['Authorization'] = `Bearer ${data.token}`;
+    }
   };
 
   const logout = async () => {
-    await axios.post('/auth/logout');
-    setUser(null);
+    try {
+      await axios.post('/auth/logout');
+    } finally {
+      setUser(null);
+      localStorage.removeItem('token');
+      delete axios.defaults.headers.common['Authorization'];
+    }
   };
 
   return (
