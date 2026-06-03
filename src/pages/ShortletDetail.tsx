@@ -56,8 +56,9 @@ export default function ShortletDetail() {
     try {
       await axios.post('/shortlets/request', {
         apartmentId: id,
-        startDate: new Date(startDate).toISOString(),
-        endDate: new Date(endDate).toISOString(),
+        checkInDate: new Date(startDate).toISOString(),
+        checkOutDate: new Date(endDate).toISOString(),
+        guests: 1,
       });
       showToast("Booking request sent! We'll confirm availability shortly.", 'success');
       navigate('/orders');

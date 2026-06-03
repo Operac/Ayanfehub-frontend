@@ -671,11 +671,12 @@ export default function CleaningRequestForm() {
 
             {/* ── Location ── */}
             <InputField label="Full address / location" icon={MapPin} required>
-              <input
+              <textarea
                 value={form.location}
                 onChange={e => set('location', e.target.value)}
                 placeholder="e.g. 12 Admiralty Way, Lekki Phase 1, Lagos"
-                className="input-base"
+                className="input-base py-2 resize-none"
+                rows={3}
               />
             </InputField>
 
