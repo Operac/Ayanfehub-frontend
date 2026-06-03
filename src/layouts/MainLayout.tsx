@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from '../components/GlobalSearch';
 import NotificationBell from '../components/NotificationBell';
-import { ShoppingCart, Menu, X, ChevronDown, LayoutDashboard, LogOut, User, Package } from 'lucide-react';
+import { ShoppingCart, Menu, X, ChevronDown, Store, LayoutDashboard, LogOut, User, Package } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Marketplace', path: '/marketplace' },
@@ -281,8 +281,8 @@ export default function MainLayout() {
             {/* Brand */}
             <div className="md:col-span-1">
               <div className="flex items-center gap-2.5 mb-5">
-                <div className="size-9 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center text-white shadow-lg shadow-primary/40">
-                  <Store size={18} />
+                <div className="size-9 rounded-xl overflow-hidden flex items-center justify-center shadow-lg shadow-primary/40">
+                  <img src="/ayanfe-logo (2).png" className="w-full h-full object-cover" alt="Ayanfe logo" />
                 </div>
                 <span className="text-white text-xl font-black tracking-tight">
                   Ayanfe<span className="text-primary" style={{ filter: 'brightness(1.5)' }}>.</span>
