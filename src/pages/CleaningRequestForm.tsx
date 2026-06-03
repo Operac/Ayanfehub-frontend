@@ -141,6 +141,21 @@ const defaultForm = (cat?: Category): FormState => ({
   specialRequest: '',
 });
 
+// ── Input helper component ───────────────────────────────────────────────────
+
+const InputField = ({
+  label, icon: LabelIcon, required, children, hint
+}: { label: string; icon?: React.FC<any>; required?: boolean; children: React.ReactNode; hint?: string }) => (
+  <div>
+    <label className="block text-xs font-bold text-muted uppercase tracking-wide mb-2">
+      {LabelIcon && <LabelIcon size={11} className="inline mr-1" />}
+      {label} {required && <span className="text-red-500">*</span>}
+      {hint && <span className="normal-case text-muted font-normal ml-1">— {hint}</span>}
+    </label>
+    {children}
+  </div>
+);
+
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export default function CleaningRequestForm() {
@@ -308,21 +323,6 @@ export default function CleaningRequestForm() {
       </div>
     );
   }
-
-  // ── Input helper ──────────────────────────────────────────────────────────────
-
-  const InputField = ({
-    label, icon: LabelIcon, required, children, hint
-  }: { label: string; icon?: React.FC<any>; required?: boolean; children: React.ReactNode; hint?: string }) => (
-    <div>
-      <label className="block text-xs font-bold text-muted uppercase tracking-wide mb-2">
-        {LabelIcon && <LabelIcon size={11} className="inline mr-1" />}
-        {label} {required && <span className="text-red-500">*</span>}
-        {hint && <span className="normal-case text-muted font-normal ml-1">— {hint}</span>}
-      </label>
-      {children}
-    </div>
-  );
 
   // ── Step renderer ─────────────────────────────────────────────────────────────
 
