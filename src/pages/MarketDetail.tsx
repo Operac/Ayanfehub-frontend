@@ -76,15 +76,15 @@ export default function MarketDetail() {
     <div className="min-h-screen flex items-center justify-center bg-background-light">
       <div className="flex flex-col items-center gap-4">
         <div className="size-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <p className="text-[#5e8d88] font-medium">Loading market details...</p>
+        <p className="text-[#BB8A52] font-medium">Loading market details...</p>
       </div>
     </div>
   );
 
   if (fetchError) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background-light gap-4">
-      <h2 className="text-2xl font-bold text-[#101818]">Failed to load market</h2>
-      <p className="text-[#5e8d88]">Something went wrong. Please try again.</p>
+      <h2 className="text-2xl font-bold text-[#0C3B2E]">Failed to load market</h2>
+      <p className="text-[#BB8A52]">Something went wrong. Please try again.</p>
       <button
         onClick={() => { setFetchError(false); setLoading(true); if (id) { axios.get(`/markets/${id}/items`).then(({ data }) => { setMarket(data.market); setItems(data.items); }).catch(() => setFetchError(true)).finally(() => setLoading(false)); } }}
         className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors"
@@ -97,7 +97,7 @@ export default function MarketDetail() {
 
   if (!market) return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background-light gap-4">
-      <h2 className="text-2xl font-bold text-[#101818]">Market not found</h2>
+      <h2 className="text-2xl font-bold text-[#0C3B2E]">Market not found</h2>
       <Link to="/marketplace" className="text-primary hover:underline font-bold">Return to Marketplace</Link>
     </div>
   );
@@ -106,16 +106,16 @@ export default function MarketDetail() {
     <div className="max-w-[1200px] mx-auto pb-20 px-4 md:px-0">
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 px-4 pt-6 text-sm">
-        <Link to="/marketplace" className="text-[#5e8d88] hover:text-primary font-medium">Markets</Link>
-        <span className="text-[#5e8d88]">›</span>
-        <span className="text-[#101818] font-semibold">{market.name}</span>
+        <Link to="/marketplace" className="text-[#BB8A52] hover:text-primary font-medium">Markets</Link>
+        <span className="text-[#BB8A52]">›</span>
+        <span className="text-[#0C3B2E] font-semibold">{market.name}</span>
       </div>
 
       {/* Page Heading */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 p-4 mt-2">
         <div className="flex flex-col gap-2">
-          <h2 className="text-[#101818] text-4xl md:text-5xl font-black leading-tight tracking-tight">{market.name}</h2>
-          <p className="text-[#5e8d88] text-lg font-normal">Fresh items curated and vetted by Ayanfe quality assurance</p>
+          <h2 className="text-[#0C3B2E] text-4xl md:text-5xl font-black leading-tight tracking-tight">{market.name}</h2>
+          <p className="text-[#BB8A52] text-lg font-normal">Fresh items curated and vetted by Ayanfe quality assurance</p>
         </div>
       </div>
 
@@ -127,10 +127,10 @@ export default function MarketDetail() {
               <span className="material-symbols-outlined">local_shipping</span>
             </div>
             <div className="flex flex-col">
-              <p className="text-[#101818] text-lg font-bold">
+              <p className="text-[#0C3B2E] text-lg font-bold">
                 Next Delivery: <span className="text-primary">{nextDelivery ? DAY_NAMES[nextDelivery.dayOfWeek] : 'Saturday'}</span>
               </p>
-              <p className="text-[#5e8d88] text-sm">
+              <p className="text-[#BB8A52] text-sm">
                 Order before <span className="font-bold text-red-600">{nextDelivery ? `${DAY_NAMES[(nextDelivery.dayOfWeek + 6) % 7]} ${nextDelivery.cutoffHour}:00` : 'Friday 12:00'}</span>
               </p>
             </div>
@@ -155,8 +155,8 @@ export default function MarketDetail() {
       )}
 
       {/* Category Tabs */}
-      <div className="sticky top-0 z-40 bg-[#f7f7f7] bg-opacity-95 backdrop-blur-sm py-4 px-4 transition-all">
-        <div className="flex border-b border-[#dae7e5] gap-8 overflow-x-auto">
+      <div className="sticky top-0 z-40 bg-[#F9FAF9] bg-opacity-95 backdrop-blur-sm py-4 px-4 transition-all">
+        <div className="flex border-b border-[#e2eae6] gap-8 overflow-x-auto">
           {categories.map(cat => (
             <button
               key={cat}
@@ -164,7 +164,7 @@ export default function MarketDetail() {
               className={`flex flex-col items-center justify-center border-b-[3px] pb-3 transition-all whitespace-nowrap px-2 ${
                 activeCategory === cat
                   ? 'border-primary text-primary'
-                  : 'border-transparent text-[#5e8d88] hover:text-primary'
+                  : 'border-transparent text-[#BB8A52] hover:text-primary'
               }`}
             >
               <p className="text-sm font-bold">{cat}</p>
@@ -177,14 +177,14 @@ export default function MarketDetail() {
       <div className="p-4">
         {filteredItems.length === 0 ? (
           <div className="py-20 text-center flex flex-col items-center">
-            <p className="text-[#5e8d88] text-lg">No items available in this market currently.</p>
+            <p className="text-[#BB8A52] text-lg">No items available in this market currently.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredItems.map(item => {
               const price = getItemPrice(item);
               return (
-                <div key={item.id} className="flex flex-col bg-white rounded-xl overflow-hidden border border-[#dae7e5] hover:shadow-xl transition-all group">
+                <div key={item.id} className="flex flex-col bg-white rounded-xl overflow-hidden border border-[#e2eae6] hover:shadow-xl transition-all group">
                   <div className="aspect-[4/3] bg-gray-100 overflow-hidden relative">
                     <div
                       className="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-hover:scale-110"
@@ -194,8 +194,8 @@ export default function MarketDetail() {
                   </div>
                   <div className="p-4 flex flex-col flex-1">
                     <div className="mb-auto">
-                      <h3 className="text-[#101818] font-bold text-base leading-tight line-clamp-2">{item.name}</h3>
-                      <p className="text-[#5e8d88] text-xs mt-1">per {item.unit}</p>
+                      <h3 className="text-[#0C3B2E] font-bold text-base leading-tight line-clamp-2">{item.name}</h3>
+                      <p className="text-[#BB8A52] text-xs mt-1">per {item.unit}</p>
                     </div>
                     <div className="mt-4 flex items-center justify-between">
                       <span className="text-primary font-black text-lg">
@@ -219,7 +219,7 @@ export default function MarketDetail() {
 
       {filteredItems.length > 0 && (
         <div className="flex flex-col items-center justify-center py-12 gap-4">
-          <p className="text-[#5e8d88] text-sm">Showing {filteredItems.length} items at {market.name}</p>
+          <p className="text-[#BB8A52] text-sm">Showing {filteredItems.length} items at {market.name}</p>
         </div>
       )}
     </div>

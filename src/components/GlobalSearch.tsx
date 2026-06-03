@@ -114,13 +114,13 @@ export default function GlobalSearch() {
   return (
     <div ref={containerRef} className="relative w-full">
       <div className="relative">
-        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#5e8d88]" />
+        <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#BB8A52]" />
         <input
           ref={inputRef}
           value={query}
           onChange={handleChange}
           onFocus={() => results && setOpen(true)}
-          className="w-full h-10 pl-9 pr-8 rounded-lg border-none bg-[#f0f5f4] text-[#101818] placeholder:text-[#5e8d88] focus:ring-2 focus:ring-primary text-sm focus:outline-none"
+          className="w-full h-10 pl-9 pr-8 rounded-lg border-none bg-[#F4F7F5] text-[#0C3B2E] placeholder:text-[#BB8A52] focus:ring-2 focus:ring-primary text-sm focus:outline-none"
           placeholder="Search markets, artisans, shortlets..."
           type="text"
         />

@@ -214,8 +214,8 @@ export default function Home() {
           className="absolute inset-0 pointer-events-none opacity-[0.03]"
           style={{
             backgroundImage: `
-              linear-gradient(#008577 1px, transparent 1px),
-              linear-gradient(90deg, #008577 1px, transparent 1px)
+              linear-gradient(#6D9773 1px, transparent 1px),
+              linear-gradient(90deg, #6D9773 1px, transparent 1px)
             `,
             backgroundSize: '60px 60px',
           }}

@@ -1,14 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary:    #008577;
-  --color-primary-dark: #006860;
-  --color-accent:     #F97316;
-  --color-ink:        #0A1628;
-  --color-muted:      #5e8d88;
-  --color-surface:    #F0F7F6;
-  --color-background-light: #f7f9f8;
-  --color-background-dark: #0A1628;
+  --color-primary:    #6D9773;
+  --color-primary-dark: #0C3B2E;
+  --color-accent:     #FFBA00;
+  --color-ink:        #0C3B2E;
+  --color-muted:      #BB8A52;
+  --color-surface:    #F4F7F5;
+  --color-background-light: #F9FAF9;
+  --color-background-dark: #0C3B2E;
   --font-sans: 'Manrope', sans-serif;
   --font-display: 'Manrope', sans-serif;
 }
@@ -21,19 +21,19 @@
   body {
     @apply bg-background-light text-ink font-sans antialiased;
     background-image:
-      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(0,133,119,0.07) 0%, transparent 70%);
+      radial-gradient(ellipse 80% 50% at 50% -20%, rgba(109,151,115,0.07) 0%, transparent 70%);
     background-attachment: fixed;
   }
 
   ::selection {
-    background: rgba(0, 133, 119, 0.25);
-    color: #0A1628;
+    background: rgba(109, 151, 115, 0.25);
+    color: #0C3B2E;
   }
 
   ::-webkit-scrollbar { width: 6px; }
   ::-webkit-scrollbar-track { background: transparent; }
-  ::-webkit-scrollbar-thumb { background: rgba(0,133,119,0.3); border-radius: 99px; }
-  ::-webkit-scrollbar-thumb:hover { background: rgba(0,133,119,0.6); }
+  ::-webkit-scrollbar-thumb { background: rgba(109,151,115,0.3); border-radius: 99px; }
+  ::-webkit-scrollbar-thumb:hover { background: rgba(109,151,115,0.6); }
 }
 
 /* ─── Keyframes ─────────────────────────────────────── */
@@ -130,14 +130,14 @@
 
   /* Gradient text */
   .gradient-text {
-    background: linear-gradient(135deg, #008577 0%, #00b5a0 50%, #F97316 100%);
+    background: linear-gradient(135deg, #6D9773 0%, #BB8A52 50%, #FFBA00 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
   .gradient-text-warm {
-    background: linear-gradient(135deg, #F97316 0%, #EF4444 100%);
+    background: linear-gradient(135deg, #BB8A52 0%, #FFBA00 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -149,7 +149,7 @@
 
   /* Skeleton shimmer */
   .skeleton {
-    background: linear-gradient(90deg, #e8f0ef 25%, #f5faf9 50%, #e8f0ef 75%);
+    background: linear-gradient(90deg, #eff3f1 25%, #f9faf9 50%, #eff3f1 75%);
     background-size: 200% 100%;
     animation: shimmer 1.6s ease-in-out infinite;
   }
@@ -160,33 +160,33 @@
   }
   .card-hover:hover {
     transform: translateY(-4px);
-    box-shadow: 0 20px 60px rgba(0,133,119,0.12), 0 8px 24px rgba(0,0,0,0.06);
+    box-shadow: 0 20px 60px rgba(109,151,115,0.12), 0 8px 24px rgba(0,0,0,0.06);
   }
 
   /* Glow borders */
   .glow-border {
-    box-shadow: 0 0 0 1px rgba(0,133,119,0.3), 0 0 20px rgba(0,133,119,0.1);
+    box-shadow: 0 0 0 1px rgba(109,151,115,0.3), 0 0 20px rgba(109,151,115,0.1);
   }
 
   .glow-border-accent {
-    box-shadow: 0 0 0 1px rgba(249,115,22,0.4), 0 0 20px rgba(249,115,22,0.15);
+    box-shadow: 0 0 0 1px rgba(255,186,0,0.4), 0 0 20px rgba(255,186,0,0.15);
   }
 
   /* Mesh gradient backgrounds */
   .mesh-bg {
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(0,133,119,0.15) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(249,115,22,0.1) 0%, transparent 40%),
-      radial-gradient(ellipse at 60% 80%, rgba(0,180,165,0.08) 0%, transparent 40%),
-      #f7f9f8;
+      radial-gradient(ellipse at 20% 50%, rgba(109,151,115,0.15) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(255,186,0,0.1) 0%, transparent 40%),
+      radial-gradient(ellipse at 60% 80%, rgba(12,59,46,0.05) 0%, transparent 40%),
+      #F9FAF9;
   }
 
   .mesh-bg-dark {
     background:
-      radial-gradient(ellipse at 20% 50%, rgba(0,133,119,0.25) 0%, transparent 50%),
-      radial-gradient(ellipse at 80% 20%, rgba(249,115,22,0.15) 0%, transparent 40%),
-      radial-gradient(ellipse at 60% 80%, rgba(0,180,165,0.12) 0%, transparent 40%),
-      #0A1628;
+      radial-gradient(ellipse at 20% 50%, rgba(109,151,115,0.25) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 20%, rgba(255,186,0,0.15) 0%, transparent 40%),
+      radial-gradient(ellipse at 60% 80%, rgba(109,151,115,0.12) 0%, transparent 40%),
+      #0C3B2E;
   }
 
   /* Form input base style — used across admin and vendor forms */

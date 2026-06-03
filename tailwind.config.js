@@ -7,10 +7,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        "primary": "#008577",
-        "accent-gold": "#B8860B",
-        "background-light": "#f7f7f7",
-        "background-dark": "#1f1f1f",
+        "primary": "#6D9773",
+        "accent-gold": "#BB8A52",
+        "background-light": "#F9FAF9",
+        "background-dark": "#0C3B2E",
       },
       fontFamily: {
         "sans": ["Manrope", "sans-serif"],
