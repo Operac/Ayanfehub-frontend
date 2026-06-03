@@ -18,12 +18,12 @@ interface OrderItemCardProps {
 }
 
 const STATUS_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  PENDING: { bg: 'bg-gray-100', text: 'text-gray-700', dot: 'bg-gray-400' },
-  SOURCING: { bg: 'bg-blue-100', text: 'text-blue-700', dot: 'bg-blue-400' },
-  AT_HUB: { bg: 'bg-amber-100', text: 'text-amber-700', dot: 'bg-amber-400' },
-  OUT_FOR_DELIVERY: { bg: 'bg-orange-100', text: 'text-orange-700', dot: 'bg-orange-400' },
-  DELIVERED: { bg: 'bg-emerald-100', text: 'text-emerald-700', dot: 'bg-emerald-400' },
-  CANCELLED: { bg: 'bg-red-100', text: 'text-red-700', dot: 'bg-red-400' },
+  PENDING: { bg: 'bg-surface', text: 'text-muted', dot: 'bg-muted' },
+  SOURCING: { bg: 'bg-primary/10', text: 'text-primary', dot: 'bg-primary' },
+  AT_HUB: { bg: 'bg-accent/10', text: 'text-muted', dot: 'bg-accent' },
+  OUT_FOR_DELIVERY: { bg: 'bg-accent/15', text: 'text-muted', dot: 'bg-accent' },
+  DELIVERED: { bg: 'bg-primary/20', text: 'text-primary-dark', dot: 'bg-primary' },
+  CANCELLED: { bg: 'bg-red-50', text: 'text-red-700', dot: 'bg-red-500' },
 };
 
 export default function OrderItemCard({

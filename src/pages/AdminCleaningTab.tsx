@@ -72,19 +72,19 @@ interface HomePricing {
 }
 
 const CAT_META: Record<string, { icon: React.FC<any>; gradient: string; label: string }> = {
-  HOME:         { icon: Home,       gradient: 'from-emerald-500 to-teal-600',  label: 'Home'         },
-  OFFICE:       { icon: Building2,  gradient: 'from-blue-500 to-indigo-600',   label: 'Office'       },
-  CONSTRUCTION: { icon: HardHat,    gradient: 'from-orange-500 to-amber-600',  label: 'Construction' },
+  HOME:         { icon: Home,       gradient: 'from-primary to-primary-dark',  label: 'Home'         },
+  OFFICE:       { icon: Building2,  gradient: 'from-muted to-primary-dark',   label: 'Office'       },
+  CONSTRUCTION: { icon: HardHat,    gradient: 'from-accent to-muted',  label: 'Construction' },
 };
 
 const STATUS_CFG: Record<string, { label: string; color: string }> = {
-  PENDING_QUOTE:         { label: 'Pending Quote',    color: 'text-amber-700 bg-amber-50'      },
-  INSPECTION_SCHEDULED:  { label: 'Inspection Booked',color: 'text-violet-700 bg-violet-50'    },
-  QUOTED:                { label: 'Quote Sent',       color: 'text-blue-700 bg-blue-50'        },
-  DEPOSIT_PAID:          { label: 'Deposit Paid',     color: 'text-indigo-700 bg-indigo-50'    },
-  ASSIGNED:              { label: 'Assigned',         color: 'text-purple-700 bg-purple-50'    },
+  PENDING_QUOTE:         { label: 'Pending Quote',    color: 'text-muted bg-muted/10'      },
+  INSPECTION_SCHEDULED:  { label: 'Inspection Booked',color: 'text-primary bg-primary/10'    },
+  QUOTED:                { label: 'Quote Sent',       color: 'text-accent bg-accent/10 border border-accent/20' },
+  DEPOSIT_PAID:          { label: 'Deposit Paid',     color: 'text-primary bg-primary/20'    },
+  ASSIGNED:              { label: 'Assigned',         color: 'text-muted bg-muted/10'    },
   IN_PROGRESS:           { label: 'In Progress',      color: 'text-primary bg-primary/10'      },
-  COMPLETED:             { label: 'Completed',        color: 'text-emerald-700 bg-emerald-50'  },
+  COMPLETED:             { label: 'Completed',        color: 'text-primary bg-primary/20'  },
   CANCELLED:             { label: 'Cancelled',        color: 'text-red-700 bg-red-50'          },
 };
 
@@ -566,19 +566,19 @@ function RequestRow({ request }: { request: CleaningRequest }) {
 
                 {/* Inspection info */}
                 {request.inspectionScheduledAt && (
-                  <div className="bg-violet-50 rounded-xl px-3 py-2">
-                    <p className="text-xs font-bold text-violet-700 mb-1">Inspection</p>
-                    <p className="text-xs text-violet-700">
+                  <div className="bg-primary/5 rounded-xl px-3 py-2">
+                    <p className="text-xs font-bold text-ink mb-1">Inspection</p>
+                    <p className="text-xs text-ink/80">
                       Scheduled: {new Date(request.inspectionScheduledAt).toLocaleString('en-NG')}
                     </p>
                     {request.inspectionCompletedAt && (
-                      <p className="text-xs text-violet-700 mt-0.5">Completed: {new Date(request.inspectionCompletedAt).toLocaleString('en-NG')}</p>
+                      <p className="text-xs text-ink/80 mt-0.5">Completed: {new Date(request.inspectionCompletedAt).toLocaleString('en-NG')}</p>
                     )}
                     {request.crewSizeRecommended && (
-                      <p className="text-xs text-violet-700 mt-0.5">Recommended crew: {request.crewSizeRecommended}</p>
+                      <p className="text-xs text-ink/80 mt-0.5">Recommended crew: {request.crewSizeRecommended}</p>
                     )}
                     {request.inspectionNote && (
-                      <p className="text-xs text-violet-700 mt-1 italic">"{request.inspectionNote}"</p>
+                      <p className="text-xs text-ink/75 mt-1 italic">"{request.inspectionNote}"</p>
                     )}
                   </div>
                 )}
@@ -590,23 +590,23 @@ function RequestRow({ request }: { request: CleaningRequest }) {
 
                 {/* Quote info */}
                 {request.quoteAmountNgn && (
-                  <div className="bg-blue-50 rounded-xl px-3 py-2">
-                    <p className="text-xs font-bold text-blue-700 mb-1">Quote</p>
-                    <p className="text-xs text-blue-700">
+                  <div className="bg-accent/5 rounded-xl px-3 py-2">
+                    <p className="text-xs font-bold text-ink mb-1">Quote</p>
+                    <p className="text-xs text-ink/85">
                       Total: {formatCurrency(Number(request.quoteAmountNgn))} · Deposit: {formatCurrency(Number(request.depositAmountNgn))}
                     </p>
-                    {request.quoteNotes && <p className="text-xs text-blue-700 mt-0.5 italic">"{request.quoteNotes}"</p>}
+                    {request.quoteNotes && <p className="text-xs text-ink/80 mt-0.5 italic">"{request.quoteNotes}"</p>}
                     {request.depositPaidAt && (
-                      <p className="text-xs text-emerald-700 mt-1">✅ Deposit paid {new Date(request.depositPaidAt).toLocaleDateString('en-NG')}</p>
+                      <p className="text-xs text-primary font-bold mt-1">✅ Deposit paid {new Date(request.depositPaidAt).toLocaleDateString('en-NG')}</p>
                     )}
                   </div>
                 )}
 
                 {/* Assigned cleaner */}
                 {request.assignedCleanerName && (
-                  <div className="bg-purple-50 rounded-xl px-3 py-2">
-                    <p className="text-xs font-bold text-purple-700 mb-0.5">Assigned cleaner</p>
-                    <p className="text-xs text-purple-700">{request.assignedCleanerName} · {request.assignedCleanerPhone}</p>
+                  <div className="bg-primary/5 rounded-xl px-3 py-2">
+                    <p className="text-xs font-bold text-ink mb-0.5">Assigned cleaner</p>
+                    <p className="text-xs text-ink/80">{request.assignedCleanerName} · {request.assignedCleanerPhone}</p>
                   </div>
                 )}
 

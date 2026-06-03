@@ -61,19 +61,19 @@ const EMPTY_FORM: CreateForm = {
 };
 
 const STATUS_CFG: Record<string, { label: string; color: string }> = {
-  OPEN:      { label: 'Open',      color: 'text-emerald-700 bg-emerald-50' },
-  FULL:      { label: 'Full',      color: 'text-amber-700 bg-amber-50'     },
-  PAYING:    { label: 'Paying',    color: 'text-orange-700 bg-orange-50'   },
-  CONFIRMED: { label: 'Confirmed', color: 'text-blue-700 bg-blue-50'       },
+  OPEN:      { label: 'Open',      color: 'text-primary bg-primary/10' },
+  FULL:      { label: 'Full',      color: 'text-muted bg-muted/10'     },
+  PAYING:    { label: 'Paying',    color: 'text-accent bg-accent/15'   },
+  CONFIRMED: { label: 'Confirmed', color: 'text-primary bg-primary/10'       },
   CANCELLED: { label: 'Cancelled', color: 'text-red-700 bg-red-50'         },
-  FULFILLED: { label: 'Fulfilled', color: 'text-gray-700 bg-gray-100'      },
+  FULFILLED: { label: 'Fulfilled', color: 'text-primary-dark bg-surface'      },
 };
 
 const SLOT_STATUS_CFG: Record<string, { label: string; color: string }> = {
-  RESERVED: { label: 'Reserved', color: 'text-amber-700 bg-amber-50'   },
-  PAID:     { label: 'Paid',     color: 'text-emerald-700 bg-emerald-50'},
+  RESERVED: { label: 'Reserved', color: 'text-muted bg-muted/10'   },
+  PAID:     { label: 'Paid',     color: 'text-primary bg-primary/10'},
   RELEASED: { label: 'Released', color: 'text-gray-600 bg-gray-100'    },
-  REFUNDED: { label: 'Refunded', color: 'text-blue-700 bg-blue-50'     },
+  REFUNDED: { label: 'Refunded', color: 'text-muted bg-muted/15'     },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -468,7 +468,7 @@ export default function AdminGroupBuyTab() {
                     )}
                     {/* Fulfill (only CONFIRMED) */}
                     {ev.status === 'CONFIRMED' && (
-                      <button onClick={() => handleFulfill(ev.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Mark fulfilled">
+                      <button onClick={() => handleFulfill(ev.id)} className="p-1.5 text-primary hover:bg-primary/10 rounded-lg" title="Mark fulfilled">
                         <Package size={15} />
                       </button>
                     )}

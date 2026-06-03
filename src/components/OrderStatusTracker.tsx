@@ -19,13 +19,13 @@ const STATUS_STAGES = [
 ];
 
 const STATUS_COLORS: Record<string, string> = {
-  PENDING: 'text-gray-500',
-  PENDING_PAYMENT: 'text-amber-500',
-  PAYMENT_CONFIRMED: 'text-blue-500',
-  SOURCING: 'text-blue-500',
-  AT_HUB: 'text-orange-500',
-  OUT_FOR_DELIVERY: 'text-orange-500',
-  DELIVERED: 'text-emerald-500',
+  PENDING: 'text-muted',
+  PENDING_PAYMENT: 'text-muted',
+  PAYMENT_CONFIRMED: 'text-primary',
+  SOURCING: 'text-primary',
+  AT_HUB: 'text-accent',
+  OUT_FOR_DELIVERY: 'text-accent',
+  DELIVERED: 'text-primary-dark',
   CANCELLED: 'text-red-500',
 };
 
@@ -90,7 +90,7 @@ export default function OrderStatusTracker({
                     animate={isCurrent ? { scale: 1.1 } : {}}
                     className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
                       isCompleted
-                        ? 'bg-emerald-100 text-emerald-600'
+                        ? 'bg-primary/20 text-primary-dark'
                         : 'bg-gray-100 text-gray-400'
                     } ${isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''}`}
                   >
@@ -99,7 +99,7 @@ export default function OrderStatusTracker({
                   {!isLast && (
                     <div
                       className={`w-0.5 flex-1 min-h-[1.5rem] my-1 transition-colors ${
-                        isCompleted ? 'bg-emerald-200' : 'bg-gray-100'
+                        isCompleted ? 'bg-primary/30' : 'bg-gray-100'
                       }`}
                     />
                   )}
@@ -144,10 +144,10 @@ export default function OrderStatusTracker({
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl"
+          className="mt-6 p-4 bg-primary/5 border border-primary/20 rounded-xl"
         >
-          <p className="text-xs font-semibold text-blue-900">Expected Delivery</p>
-          <p className="text-sm text-blue-700 mt-1">
+          <p className="text-xs font-semibold text-primary-dark">Expected Delivery</p>
+          <p className="text-sm text-primary mt-1">
             {new Date(estimatedDeliveryAt).toLocaleDateString('en-NG', { weekday: 'long', month: 'short', day: 'numeric' })}
           </p>
         </motion.div>

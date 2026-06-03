@@ -46,19 +46,19 @@ interface CleaningRequest {
 }
 
 const CAT_META: Record<string, { icon: React.FC<any>; color: string; gradient: string; label: string }> = {
-  HOME:         { icon: Home,      color: 'text-emerald-600', gradient: 'from-emerald-500 to-teal-600',  label: 'Home Cleaning'              },
-  OFFICE:       { icon: Building2, color: 'text-blue-600',    gradient: 'from-blue-500 to-indigo-600',   label: 'Office Cleaning'            },
-  CONSTRUCTION: { icon: HardHat,   color: 'text-orange-600',  gradient: 'from-orange-500 to-amber-600',  label: 'Construction Site Cleaning' },
+  HOME:         { icon: Home,      color: 'text-primary', gradient: 'from-primary to-primary-dark',  label: 'Home Cleaning'              },
+  OFFICE:       { icon: Building2, color: 'text-muted',    gradient: 'from-muted to-primary-dark',   label: 'Office Cleaning'            },
+  CONSTRUCTION: { icon: HardHat,   color: 'text-accent',  gradient: 'from-accent to-muted',  label: 'Construction Site Cleaning' },
 };
 
 const STATUS_CFG: Record<string, { label: string; color: string; description: string }> = {
-  PENDING_QUOTE:        { label: 'Pending Quote',      color: 'text-amber-700 bg-amber-50',    description: 'Our team is reviewing your request' },
-  INSPECTION_SCHEDULED: { label: 'Inspection Booked',  color: 'text-violet-700 bg-violet-50',  description: 'Our team will visit your property before sending a quote' },
-  QUOTED:               { label: 'Quote Ready',        color: 'text-blue-700 bg-blue-50',      description: 'Tap "Pay Deposit" to confirm' },
-  DEPOSIT_PAID:         { label: 'Deposit Paid',       color: 'text-indigo-700 bg-indigo-50',  description: 'We\'re assigning a cleaner' },
-  ASSIGNED:             { label: 'Cleaner Assigned',   color: 'text-purple-700 bg-purple-50',  description: 'Your cleaner will contact you soon' },
+  PENDING_QUOTE:        { label: 'Pending Quote',      color: 'text-muted bg-muted/10',    description: 'Our team is reviewing your request' },
+  INSPECTION_SCHEDULED: { label: 'Inspection Booked',  color: 'text-primary bg-primary/10',  description: 'Our team will visit your property before sending a quote' },
+  QUOTED:               { label: 'Quote Ready',        color: 'text-accent bg-accent/10 border border-accent/20',      description: 'Tap "Pay Deposit" to confirm' },
+  DEPOSIT_PAID:         { label: 'Deposit Paid',       color: 'text-primary bg-primary/20',  description: 'We\'re assigning a cleaner' },
+  ASSIGNED:             { label: 'Cleaner Assigned',   color: 'text-muted bg-muted/10',  description: 'Your cleaner will contact you soon' },
   IN_PROGRESS:          { label: 'In Progress',        color: 'text-primary bg-primary/10',    description: 'Cleaning is underway' },
-  COMPLETED:            { label: 'Completed',          color: 'text-emerald-700 bg-emerald-50', description: 'Service completed' },
+  COMPLETED:            { label: 'Completed',          color: 'text-primary bg-primary/20', description: 'Service completed' },
   CANCELLED:            { label: 'Cancelled',          color: 'text-red-700 bg-red-50',        description: '' },
 };
 
@@ -184,34 +184,34 @@ function CleaningCard({ request }: { request: CleaningRequest }) {
 
         {/* Inspection scheduled banner */}
         {isInspectionSet && request.inspectionScheduledAt && (
-          <div className="bg-violet-50 border border-violet-100 rounded-2xl p-4 mb-4">
-            <p className="text-xs font-bold text-violet-700 mb-2">📋 Inspection scheduled</p>
-            <p className="text-sm text-violet-800 font-semibold">
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4 mb-4">
+            <p className="text-xs font-bold text-ink mb-2">📋 Inspection scheduled</p>
+            <p className="text-sm text-ink font-semibold">
               {new Date(request.inspectionScheduledAt).toLocaleDateString('en-NG', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               {' at '}
               {new Date(request.inspectionScheduledAt).toLocaleTimeString('en-NG', { hour: '2-digit', minute: '2-digit' })}
             </p>
             {request.inspectionNote && (
-              <p className="text-xs text-violet-700 mt-1 italic">"{request.inspectionNote}"</p>
+              <p className="text-xs text-ink/80 mt-1 italic">"{request.inspectionNote}"</p>
             )}
-            <p className="text-xs text-violet-600 mt-2">You'll receive a quote within 24 hours of the visit.</p>
+            <p className="text-xs text-ink/75 mt-2">You'll receive a quote within 24 hours of the visit.</p>
           </div>
         )}
 
         {/* Quote banner */}
         {isQuoted && request.quoteAmountNgn && (
-          <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 mb-4">
-            <p className="text-xs font-bold text-blue-700 mb-2">🎉 Your quote is ready</p>
+          <div className="bg-accent/5 border border-accent/20 rounded-2xl p-4 mb-4">
+            <p className="text-xs font-bold text-ink mb-2">🎉 Your quote is ready</p>
             <div className="flex justify-between items-center mb-2">
-              <span className="text-sm text-muted">Total quote</span>
+              <span className="text-sm text-ink/70">Total quote</span>
               <span className="text-lg font-black text-ink">{formatCurrency(Number(request.quoteAmountNgn))}</span>
             </div>
             <div className="flex justify-between items-center mb-3">
-              <span className="text-sm text-muted">Deposit required now</span>
+              <span className="text-sm text-ink/70">Deposit required now</span>
               <span className="text-base font-black text-primary">{formatCurrency(Number(request.depositAmountNgn))}</span>
             </div>
             {request.quoteNotes && (
-              <p className="text-xs text-blue-700 italic mb-3">{request.quoteNotes}</p>
+              <p className="text-xs text-ink/80 italic mb-3">{request.quoteNotes}</p>
             )}
             {payConfig ? (
               <PayDepositButton config={payConfig} onSuccess={handlePaySuccess}>

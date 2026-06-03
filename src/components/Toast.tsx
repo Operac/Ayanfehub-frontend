@@ -6,24 +6,24 @@ type ToastType = 'success' | 'error' | 'warning' | 'info';
 
 const CONFIGS: Record<ToastType, { icon: React.ReactNode; bar: string; bg: string }> = {
   success: {
-    icon: <CheckCircle size={17} className="text-emerald-500 shrink-0" />,
-    bar: 'bg-emerald-400',
-    bg: 'bg-white border-emerald-100',
+    icon: <CheckCircle size={17} className="text-primary shrink-0" />,
+    bar: 'bg-primary',
+    bg: 'bg-white border-primary/20',
   },
   error: {
     icon: <XCircle size={17} className="text-red-500 shrink-0" />,
-    bar: 'bg-red-400',
+    bar: 'bg-red-500',
     bg: 'bg-white border-red-100',
   },
   warning: {
-    icon: <AlertTriangle size={17} className="text-amber-500 shrink-0" />,
-    bar: 'bg-amber-400',
-    bg: 'bg-white border-amber-100',
+    icon: <AlertTriangle size={17} className="text-accent shrink-0" />,
+    bar: 'bg-accent',
+    bg: 'bg-white border-accent/20',
   },
   info: {
-    icon: <Info size={17} className="text-blue-500 shrink-0" />,
-    bar: 'bg-blue-400',
-    bg: 'bg-white border-blue-100',
+    icon: <Info size={17} className="text-muted shrink-0" />,
+    bar: 'bg-muted',
+    bg: 'bg-white border-muted/20',
   },
 };
 

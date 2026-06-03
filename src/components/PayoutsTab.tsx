@@ -21,8 +21,8 @@ interface Payout {
 
 /* ─── Config ─────────────────────────────────────────────────── */
 const PAYOUT_STATUS: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  PENDING:    { label: 'Pending',    color: 'text-amber-700 bg-amber-50 border-amber-200',     icon: <Clock size={12} />        },
-  SUCCESSFUL: { label: 'Successful', color: 'text-emerald-700 bg-emerald-50 border-emerald-200', icon: <CheckCircle2 size={12} /> },
+  PENDING:    { label: 'Pending',    color: 'text-muted bg-muted/10 border-muted/20',     icon: <Clock size={12} />        },
+  SUCCESSFUL: { label: 'Successful', color: 'text-primary bg-primary/20 border-primary/30', icon: <CheckCircle2 size={12} /> },
   FAILED:     { label: 'Failed',     color: 'text-red-700 bg-red-50 border-red-200',           icon: <XCircle size={12} />      },
 };
 
@@ -46,12 +46,12 @@ function PayoutCard({ payout }: { payout: Payout }) {
       {/* Icon */}
       <div className={cn(
         'size-11 rounded-2xl flex items-center justify-center shrink-0',
-        payout.status === 'SUCCESSFUL' ? 'bg-emerald-50' :
-        payout.status === 'FAILED'     ? 'bg-red-50' : 'bg-amber-50'
+        payout.status === 'SUCCESSFUL' ? 'bg-primary/10' :
+        payout.status === 'FAILED'     ? 'bg-red-50' : 'bg-muted/10'
       )}>
         <Banknote size={20} className={
-          payout.status === 'SUCCESSFUL' ? 'text-emerald-600' :
-          payout.status === 'FAILED'     ? 'text-red-500' : 'text-amber-600'
+          payout.status === 'SUCCESSFUL' ? 'text-primary' :
+          payout.status === 'FAILED'     ? 'text-red-500' : 'text-muted'
         } />
       </div>
 
@@ -106,19 +106,19 @@ export default function PayoutsTab() {
       {/* Summary cards */}
       {!isLoading && payouts.length > 0 && (
         <div className="grid grid-cols-2 gap-3 mb-6">
-          <div className="bg-emerald-50 border border-emerald-100 rounded-2xl p-4">
-            <p className="text-xs font-bold text-emerald-600 mb-1">Total Received</p>
-            <p className="text-xl font-black text-emerald-700">{formatCurrency(totalEarned)}</p>
+          <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
+            <p className="text-xs font-bold text-primary mb-1">Total Received</p>
+            <p className="text-xl font-black text-primary-dark">{formatCurrency(totalEarned)}</p>
           </div>
-          <div className="bg-amber-50 border border-amber-100 rounded-2xl p-4">
-            <p className="text-xs font-bold text-amber-600 mb-1">Pending</p>
-            <p className="text-xl font-black text-amber-700">{formatCurrency(totalPending)}</p>
+          <div className="bg-muted/5 border border-muted/20 rounded-2xl p-4">
+            <p className="text-xs font-bold text-muted mb-1">Pending</p>
+            <p className="text-xl font-black text-muted">{formatCurrency(totalPending)}</p>
           </div>
         </div>
       )}
 
       {/* Info notice */}
-      <div className="flex items-start gap-3 bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 mb-6 text-xs text-blue-700">
+      <div className="flex items-start gap-3 bg-primary/5 border border-primary/20 rounded-2xl px-4 py-3 mb-6 text-xs text-primary">
         <Info size={14} className="shrink-0 mt-0.5" />
         <p>Payouts are initiated by the Ayanfe admin team after order fulfillment. Ensure your bank details are up to date in your profile settings.</p>
       </div>

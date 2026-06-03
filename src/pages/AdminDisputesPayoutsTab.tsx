@@ -46,9 +46,9 @@ interface ArtisanOption { id: string; name: string; verificationStatus: string }
    DISPUTES SECTION
 ══════════════════════════════════════════════════════════════ */
 const DISPUTE_STATUS_CFG: Record<string, { label: string; color: string; icon: React.ReactNode }> = {
-  OPEN:                { label: 'Open',                color: 'text-amber-700 bg-amber-50 border-amber-200',      icon: <Clock size={11} />        },
-  UNDER_INVESTIGATION: { label: 'Investigating',       color: 'text-blue-700 bg-blue-50 border-blue-200',         icon: <Search size={11} />       },
-  RESOLVED:            { label: 'Resolved',            color: 'text-emerald-700 bg-emerald-50 border-emerald-200', icon: <CheckCircle2 size={11} /> },
+  OPEN:                { label: 'Open',                color: 'text-muted bg-muted/10 border-muted/20',      icon: <Clock size={11} />        },
+  UNDER_INVESTIGATION: { label: 'Investigating',       color: 'text-primary bg-primary/10 border-primary/20',         icon: <Search size={11} />       },
+  RESOLVED:            { label: 'Resolved',            color: 'text-primary bg-primary/20 border-primary/30', icon: <CheckCircle2 size={11} /> },
   REJECTED:            { label: 'Rejected',            color: 'text-red-700 bg-red-50 border-red-200',            icon: <XCircle size={11} />      },
 };
 
@@ -210,9 +210,9 @@ function DisputeRow({ dispute }: { dispute: Dispute }) {
                   <p className="text-sm text-ink leading-relaxed">{dispute.description}</p>
                 </div>
                 {dispute.resolution && (
-                  <div className="bg-emerald-50 border border-emerald-100 rounded-xl p-3.5">
-                    <p className="text-xs font-bold text-emerald-700 mb-1">Resolution note</p>
-                    <p className="text-sm text-emerald-800">{dispute.resolution}</p>
+                  <div className="bg-primary/5 border border-primary/20 rounded-xl p-3.5">
+                    <p className="text-xs font-bold text-primary mb-1">Resolution note</p>
+                    <p className="text-sm text-primary-dark">{dispute.resolution}</p>
                   </div>
                 )}
               </div>
@@ -232,8 +232,8 @@ function DisputeRow({ dispute }: { dispute: Dispute }) {
    PAYOUTS SECTION
 ══════════════════════════════════════════════════════════════ */
 const PAYOUT_STATUS_CFG: Record<string, { label: string; color: string }> = {
-  PENDING:    { label: 'Pending',    color: 'text-amber-700 bg-amber-50 border-amber-200'      },
-  SUCCESSFUL: { label: 'Successful', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  PENDING:    { label: 'Pending',    color: 'text-muted bg-muted/10 border-muted/20'      },
+  SUCCESSFUL: { label: 'Successful', color: 'text-primary bg-primary/20 border-primary/30' },
   FAILED:     { label: 'Failed',     color: 'text-red-700 bg-red-50 border-red-200'            },
 };
 

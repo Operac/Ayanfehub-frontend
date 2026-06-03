@@ -63,9 +63,9 @@ const CONSTRUCTION_TYPES = ['Residential', 'Commercial', 'Industrial', 'Mixed-us
 const CONSTRUCTION_STAGES = ['Post-foundation', 'Structural works done', 'Finishing phase', 'Pre-handover', 'Handover cleanup'];
 
 const CATEGORY_META: Record<Category, { icon: React.FC<any>; label: string; color: string; gradient: string }> = {
-  HOME:         { icon: Home,        label: 'Home Cleaning',               color: 'text-emerald-600', gradient: 'from-emerald-500 to-teal-600'   },
-  OFFICE:       { icon: Building2,   label: 'Office Cleaning',             color: 'text-blue-600',    gradient: 'from-blue-500 to-indigo-600'    },
-  CONSTRUCTION: { icon: HardHat,     label: 'Construction Site Cleaning',  color: 'text-orange-600',  gradient: 'from-orange-500 to-amber-600'   },
+  HOME:         { icon: Home,        label: 'Home Cleaning',               color: 'text-primary', gradient: 'from-primary to-primary-dark'   },
+  OFFICE:       { icon: Building2,   label: 'Office Cleaning',             color: 'text-muted',    gradient: 'from-muted to-primary-dark'    },
+  CONSTRUCTION: { icon: HardHat,     label: 'Construction Site Cleaning',  color: 'text-accent',  gradient: 'from-accent to-muted'   },
 };
 
 const TIMES = ['06:00','07:00','08:00','09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00'];
@@ -404,7 +404,7 @@ export default function CleaningRequestForm() {
 
               {/* Recurring for Office */}
               {form.category === 'OFFICE' && (
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4">
+                <div className="bg-primary/5 border border-primary/20 rounded-2xl p-4">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-sm font-bold text-ink">Recurring subscription?</p>
                     <button
@@ -657,15 +657,15 @@ export default function CleaningRequestForm() {
 
             {/* ── Inspection info banner ── */}
             {form.category === 'CONSTRUCTION' && (
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 text-sm">
-                <p className="font-bold text-blue-800 mb-0.5">🔍 On-site inspection required</p>
-                <p className="text-xs text-blue-700">For construction sites, our team will schedule an on-site inspection to assess the scope of work before sending you a quote. This usually takes 1–2 business days.</p>
+              <div className="bg-accent/5 border border-accent/20 rounded-2xl px-4 py-3 text-sm">
+                <p className="font-bold text-ink mb-0.5">🔍 On-site inspection required</p>
+                <p className="text-xs text-ink/80">For construction sites, our team will schedule an on-site inspection to assess the scope of work before sending you a quote. This usually takes 1–2 business days.</p>
               </div>
             )}
             {form.category === 'OFFICE' && form.squareFootage && parseInt(form.squareFootage) > 500 && (
-              <div className="bg-blue-50 border border-blue-100 rounded-2xl px-4 py-3 text-sm">
-                <p className="font-bold text-blue-800 mb-0.5">🔍 We may schedule an inspection</p>
-                <p className="text-xs text-blue-700">For larger office spaces, our team may visit on-site before sending a quote. We'll let you know after reviewing your request.</p>
+              <div className="bg-accent/5 border border-accent/20 rounded-2xl px-4 py-3 text-sm">
+                <p className="font-bold text-ink mb-0.5">🔍 We may schedule an inspection</p>
+                <p className="text-xs text-ink/80">For larger office spaces, our team may visit on-site before sending a quote. We'll let you know after reviewing your request.</p>
               </div>
             )}
 

@@ -30,9 +30,9 @@ interface OrderOption {
 
 /* ─── Config ─────────────────────────────────────────────────── */
 const DISPUTE_STATUS: Record<string, { label: string; color: string }> = {
-  OPEN:                { label: 'Open',                color: 'text-amber-700 bg-amber-50 border-amber-200'     },
-  UNDER_INVESTIGATION: { label: 'Under Investigation', color: 'text-blue-700 bg-blue-50 border-blue-200'        },
-  RESOLVED:            { label: 'Resolved',            color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+  OPEN:                { label: 'Open',                color: 'text-muted bg-muted/10 border-muted/20'     },
+  UNDER_INVESTIGATION: { label: 'Under Investigation', color: 'text-primary-dark bg-primary/10 border-primary/20' },
+  RESOLVED:            { label: 'Resolved',            color: 'text-primary bg-primary/20 border-primary/30' },
   REJECTED:            { label: 'Rejected',            color: 'text-red-700 bg-red-50 border-red-200'           },
 };
 

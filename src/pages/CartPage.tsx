@@ -550,20 +550,20 @@ export default function CartPage() {
                     exit={{ opacity: 0 }}
                   >
                     {zoneLookup.found ? (
-                      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-                        <div className="flex items-center gap-2 text-emerald-700 font-bold text-sm mb-1">
+                      <div className="rounded-2xl border border-primary/20 bg-primary/10 p-4">
+                        <div className="flex items-center gap-2 text-primary-dark font-bold text-sm mb-1">
                           <Check size={15} />
                           Zone matched: {zoneLookup.zone.name}
                         </div>
 
                         {isMultiMarket && (
-                          <p className="text-xs text-emerald-600 mt-1">
+                          <p className="text-xs text-primary mt-1">
                             Your cart has items from multiple markets — delivery will be consolidated on our scheduled consolidation day.
                           </p>
                         )}
 
                         {isLoadingFee ? (
-                          <p className="text-xs text-emerald-600 mt-2 flex items-center gap-1.5">
+                          <p className="text-xs text-primary mt-2 flex items-center gap-1.5">
                             <Loader2 size={12} className="animate-spin" /> Calculating delivery fee…
                           </p>
                         ) : deliveryFeeResult ? (
@@ -580,7 +580,7 @@ export default function CartPage() {
                               </a>
                             </div>
                           ) : (
-                            <p className="text-sm text-emerald-700 font-semibold mt-1">
+                            <p className="text-sm text-primary-dark font-semibold mt-1">
                               Delivery fee: {formatCurrency(deliveryFeeResult.fee)}
                               {deliveryFeeResult.isConsolidated && <span className="font-normal text-xs ml-1">(consolidated)</span>}
                             </p>
@@ -628,16 +628,16 @@ export default function CartPage() {
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   exit={{ opacity: 0, scale: 0.95 }}
-                  className="flex items-center justify-between bg-emerald-50 border border-emerald-200 rounded-2xl px-3.5 py-3 mb-5"
+                  className="flex items-center justify-between bg-primary/10 border border-primary/20 rounded-2xl px-3.5 py-3 mb-5"
                 >
-                  <div className="flex items-center gap-2 text-emerald-700 text-sm font-bold">
+                  <div className="flex items-center gap-2 text-primary-dark text-sm font-bold">
                     <Check size={14} className="shrink-0" />
                     <span>{promoApplied.code}</span>
                     {promoApplied.description && (
-                      <span className="text-emerald-500 font-normal hidden sm:inline">— {promoApplied.description}</span>
+                      <span className="text-primary font-normal hidden sm:inline">— {promoApplied.description}</span>
                     )}
                   </div>
-                  <button onClick={() => setPromoApplied(null)} className="text-emerald-400 hover:text-emerald-600 transition-colors ml-2">
+                  <button onClick={() => setPromoApplied(null)} className="text-primary/70 hover:text-primary transition-colors ml-2">
                     <X size={14} />
                   </button>
                 </motion.div>
@@ -697,7 +697,7 @@ export default function CartPage() {
                 <motion.div
                   initial={{ opacity: 0, height: 0 }}
                   animate={{ opacity: 1, height: 'auto' }}
-                  className="flex justify-between text-emerald-600 font-bold"
+                  className="flex justify-between text-primary font-bold"
                 >
                   <span>Discount</span>
                   <span>−{formatCurrency(discount)}</span>
@@ -780,7 +780,7 @@ export default function CartPage() {
                     <span className="font-medium text-gray-800 truncate mr-4">{c.name}</span>
                     <div className="text-right shrink-0">
                       <span className="line-through text-gray-400 mr-2">{formatCurrency(c.oldPrice)}</span>
-                      <span className={`font-bold ${c.newPrice > c.oldPrice ? 'text-red-600' : 'text-emerald-600'}`}>
+                      <span className={`font-bold ${c.newPrice > c.oldPrice ? 'text-red-600' : 'text-primary'}`}>
                         {formatCurrency(c.newPrice)}
                       </span>
                     </div>

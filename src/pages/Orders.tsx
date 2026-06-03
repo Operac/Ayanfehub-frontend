@@ -54,28 +54,28 @@ interface MyGroupBuyEvent {
 
 /* ─── Order status config ────────────────────────────────────── */
 const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  DELIVERED:         { label: 'Delivered',        color: 'text-green-700 bg-green-50'   },
-  PAYMENT_CONFIRMED: { label: 'Confirmed',         color: 'text-blue-700 bg-blue-50'    },
-  SOURCING:          { label: 'Sourcing Items',    color: 'text-amber-700 bg-amber-50'  },
-  AT_HUB:            { label: 'At Hub',            color: 'text-purple-700 bg-purple-50'},
-  OUT_FOR_DELIVERY:  { label: 'Out for Delivery',  color: 'text-indigo-700 bg-indigo-50'},
-  PENDING_PAYMENT:   { label: 'Awaiting Payment',  color: 'text-amber-700 bg-amber-50' },
+  DELIVERED:         { label: 'Delivered',        color: 'text-primary-dark bg-primary/20' },
+  PAYMENT_CONFIRMED: { label: 'Confirmed',         color: 'text-primary bg-primary/10'    },
+  SOURCING:          { label: 'Sourcing Items',    color: 'text-muted bg-muted/10'  },
+  AT_HUB:            { label: 'At Hub',            color: 'text-accent bg-accent/10 border border-accent/20'},
+  OUT_FOR_DELIVERY:  { label: 'Out for Delivery',  color: 'text-accent bg-accent/15'},
+  PENDING_PAYMENT:   { label: 'Awaiting Payment',  color: 'text-muted bg-muted/10' },
   CANCELLED:         { label: 'Cancelled',         color: 'text-red-700 bg-red-50'      },
-  REFUND_INITIATED:  { label: 'Refund Initiated',  color: 'text-orange-700 bg-orange-50'},
+  REFUND_INITIATED:  { label: 'Refund Initiated',  color: 'text-muted bg-muted/15'},
 };
 
 const GB_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  OPEN:      { label: 'Open',       color: 'text-emerald-700 bg-emerald-50' },
-  FULL:      { label: 'Full',       color: 'text-amber-700 bg-amber-50'    },
-  PAYING:    { label: 'Pay Now',    color: 'text-orange-700 bg-orange-50'  },
-  CONFIRMED: { label: 'Confirmed',  color: 'text-blue-700 bg-blue-50'      },
+  OPEN:      { label: 'Open',       color: 'text-primary bg-primary/10' },
+  FULL:      { label: 'Full',       color: 'text-muted bg-muted/10'    },
+  PAYING:    { label: 'Pay Now',    color: 'text-accent bg-accent/15'  },
+  CONFIRMED: { label: 'Confirmed',  color: 'text-primary bg-primary/10'      },
   CANCELLED: { label: 'Cancelled',  color: 'text-red-700 bg-red-50'        },
-  FULFILLED: { label: 'Fulfilled',  color: 'text-gray-700 bg-gray-100'     },
+  FULFILLED: { label: 'Fulfilled',  color: 'text-primary-dark bg-surface'     },
 };
 
 const SLOT_STATUS_CONFIG: Record<string, { label: string; color: string }> = {
-  RESERVED: { label: 'Reserved — Pending Payment', color: 'text-amber-700 bg-amber-50'   },
-  PAID:     { label: 'Paid',                        color: 'text-emerald-700 bg-emerald-50' },
+  RESERVED: { label: 'Reserved — Pending Payment', color: 'text-muted bg-muted/10'   },
+  PAID:     { label: 'Paid',                        color: 'text-primary bg-primary/10' },
   RELEASED: { label: 'Slot Released',               color: 'text-red-700 bg-red-50'        },
   REFUNDED: { label: 'Refunded',                    color: 'text-gray-700 bg-gray-100'     },
 };
@@ -132,10 +132,10 @@ function OrderCard({ order, liveStatus, onCancel, onVerify, cancelling }: {
             <p className="text-xs font-mono text-muted mb-1.5 truncate">{order.orderNumber}</p>
             <div className="flex items-center gap-2 flex-wrap">
               <span className={cn('px-3 py-1 rounded-full text-xs font-bold', color)}>{label}</span>
-              {liveStatus && <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium"><Wifi size={11} /> Live</span>}
-              {isArtisan  && <span className="px-2.5 py-1 rounded-full text-xs font-bold text-orange-700 bg-orange-50">Artisan</span>}
-              {isShortlet && <span className="px-2.5 py-1 rounded-full text-xs font-bold text-blue-700 bg-blue-50">Shortlet</span>}
-              {isRequest  && <span className="px-2.5 py-1 rounded-full text-xs font-bold text-purple-700 bg-purple-50">Custom</span>}
+              {liveStatus && <span className="flex items-center gap-1 text-xs text-primary font-medium"><Wifi size={11} /> Live</span>}
+              {isArtisan  && <span className="px-2.5 py-1 rounded-full text-xs font-bold text-muted bg-muted/10">Artisan</span>}
+              {isShortlet && <span className="px-2.5 py-1 rounded-full text-xs font-bold text-primary bg-primary/10">Shortlet</span>}
+              {isRequest  && <span className="px-2.5 py-1 rounded-full text-xs font-bold text-accent bg-accent/10">Custom</span>}
             </div>
             <p className="text-xs text-muted mt-1.5">
               {new Date(order.createdAt).toLocaleDateString('en-NG', { dateStyle: 'medium' })}
@@ -170,7 +170,7 @@ function OrderCard({ order, liveStatus, onCancel, onVerify, cancelling }: {
             {canVerify && (
               <button
                 onClick={() => onVerify(order.id, order.orderNumber)}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-primary text-white text-xs font-bold rounded-xl hover:bg-primary-dark transition-colors"
               >
                 <KeyRound size={12} /> Confirm Delivery
               </button>
@@ -269,7 +269,7 @@ function GroupBuyCard({ event }: { event: MyGroupBuyEvent }) {
                   {slot.slotsCount} slot{slot.slotsCount !== 1 ? 's' : ''} · {formatCurrency(slot.totalAmountNgn)}
                 </span>
                 {slot.paidAt && (
-                  <span className="flex items-center gap-1 text-xs text-emerald-600 font-medium">
+                  <span className="flex items-center gap-1 text-xs text-primary font-medium">
                     <CheckCircle2 size={11} /> Paid {new Date(slot.paidAt).toLocaleDateString('en-NG', { dateStyle: 'short' })}
                   </span>
                 )}
@@ -473,7 +473,7 @@ export default function Orders() {
             {tab.icon}
             {tab.label}
             {!!tab.badge && tab.badge > 0 && (
-              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-orange-500 text-white text-[9px] font-black">
+              <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 flex items-center justify-center rounded-full bg-accent text-white text-[9px] font-black">
                 {tab.badge}
               </span>
             )}
@@ -665,7 +665,7 @@ export default function Orders() {
                 <button
                   onClick={handleVerifyDelivery}
                   disabled={verifyCode.length !== 6 || verifying}
-                  className="flex-1 py-3 bg-emerald-600 text-white rounded-2xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:bg-emerald-700 transition-colors"
+                  className="flex-1 py-3 bg-primary text-white rounded-2xl text-sm font-bold disabled:opacity-50 flex items-center justify-center gap-2 hover:bg-primary-dark transition-colors"
                 >
                   {verifying ? <Loader2 size={15} className="animate-spin" /> : <CheckCircle2 size={15} />}
                   {verifying ? 'Verifying…' : 'Confirm'}

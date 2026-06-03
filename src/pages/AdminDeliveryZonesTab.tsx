@@ -137,7 +137,7 @@ export default function AdminDeliveryZonesTab() {
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   <span className="font-semibold text-gray-900">{zone.name}</span>
-                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${zone.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-gray-100 text-gray-500'}`}>
+                  <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${zone.isActive ? 'bg-primary/10 text-primary-dark' : 'bg-gray-100 text-gray-500'}`}>
                     {zone.isActive ? 'Active' : 'Inactive'}
                   </span>
                 </div>

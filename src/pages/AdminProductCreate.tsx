@@ -154,7 +154,7 @@ export default function AdminProductCreate() {
                 <input type="radio" name="approvalStatus" value="APPROVED"
                   checked={formData.approvalStatus === 'APPROVED'}
                   onChange={handleChange} className="w-4 h-4" />
-                <span className="text-sm font-semibold text-emerald-700">
+                <span className="text-sm font-semibold text-primary">
                   ✓ Approved — product goes live immediately
                 </span>
               </label>

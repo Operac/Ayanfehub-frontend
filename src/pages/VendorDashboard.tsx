@@ -75,18 +75,18 @@ interface OrderItem {
 }
 
 const STATUS_COLORS: Record<string, string> = {
-  PAYMENT_CONFIRMED: 'text-blue-700 bg-blue-50',
-  SOURCING:          'text-amber-700 bg-amber-50',
-  AT_HUB:            'text-purple-700 bg-purple-50',
-  OUT_FOR_DELIVERY:  'text-indigo-700 bg-indigo-50',
-  DELIVERED:         'text-green-700 bg-green-50',
-  CANCELLED:         'text-red-700 bg-red-50',
+  PAYMENT_CONFIRMED: 'text-primary bg-primary/10',
+  SOURCING:          'text-muted bg-muted/10',
+  AT_HUB:            'text-accent bg-accent/10 border border-accent/20',
+  OUT_FOR_DELIVERY:  'text-accent bg-accent/15',
+  DELIVERED:         'text-primary-dark bg-primary/20',
+  CANCELLED:         'text-ink/60 bg-surface',
 };
 
 const VERIFICATION_STYLE: Record<string, string> = {
-  VERIFIED:  'bg-emerald-50 text-emerald-700 border-emerald-200',
-  SUSPENDED: 'bg-red-50 text-red-700 border-red-200',
-  PENDING:   'bg-amber-50 text-amber-700 border-amber-200',
+  VERIFIED:  'bg-primary/10 text-primary-dark border-primary/20',
+  SUSPENDED: 'bg-surface text-ink/60 border border-ink/20',
+  PENDING:   'bg-muted/10 text-muted border-muted/20',
 };
 
 type Tab = 'overview' | 'products' | 'orders' | 'payouts';
@@ -271,7 +271,7 @@ export default function VendorDashboard() {
           <p className="text-muted text-sm mt-1">Vendor Dashboard</p>
         </div>
         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold border ${verificationStyle}`}>
-          <span className={cn('size-1.5 rounded-full', vendor.verificationStatus === 'VERIFIED' ? 'bg-emerald-500' : vendor.verificationStatus === 'SUSPENDED' ? 'bg-red-500' : 'bg-amber-500')} />
+          <span className={cn('size-1.5 rounded-full', vendor.verificationStatus === 'VERIFIED' ? 'bg-primary' : vendor.verificationStatus === 'SUSPENDED' ? 'bg-red-500' : 'bg-accent')} />
           {vendor.verificationStatus}
         </span>
       </motion.div>
@@ -317,9 +317,9 @@ export default function VendorDashboard() {
               className="grid grid-cols-2 lg:grid-cols-4 gap-4"
             >
               <StatCard icon={<Package size={20} />} label="Active Products"  value={stats.activeProducts} color="text-primary" />
-              <StatCard icon={<ShoppingBag size={20} />} label="Total Orders"  value={stats.totalOrderItems} color="text-indigo-600" />
-              <StatCard icon={<TrendingUp size={20} />} label="Revenue"        value={formatCurrency(Number(stats.totalRevenue))} color="text-emerald-600" />
-              <StatCard icon={<Star size={20} />}        label="Rating"         value={stats.ratingAverage ? `${parseFloat(String(stats.ratingAverage)).toFixed(1)} ★` : '—'} color="text-amber-500" />
+              <StatCard icon={<ShoppingBag size={20} />} label="Total Orders"  value={stats.totalOrderItems} color="text-muted" />
+              <StatCard icon={<TrendingUp size={20} />} label="Revenue"        value={formatCurrency(Number(stats.totalRevenue))} color="text-primary" />
+              <StatCard icon={<Star size={20} />}        label="Rating"         value={stats.ratingAverage ? `${parseFloat(String(stats.ratingAverage)).toFixed(1)} ★` : '—'} color="text-accent" />
             </motion.div>
 
             {/* Recent reviews */}
@@ -435,7 +435,7 @@ export default function VendorDashboard() {
                                 </div>
                               )}
                               {!isPending && !isRejected && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-primary/10 text-primary-dark">
                                   ✓ Live
                                 </span>
                               )}

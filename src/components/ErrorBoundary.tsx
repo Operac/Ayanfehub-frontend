@@ -19,6 +19,13 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error, info: { componentStack: string }) {
     console.error('[ErrorBoundary]', error, info.componentStack);
+    const isFailedFetch = error.message?.includes('Failed to fetch') ||
+                          error.message?.includes('dynamically imported') ||
+                          error.message?.includes('module script');
+    if (isFailedFetch) {
+      console.warn('Dynamic import failed. Reloading page...');
+      window.location.reload();
+    }
   }
 
   render() {
@@ -29,7 +36,16 @@ export default class ErrorBoundary extends Component<Props, State> {
           <h2 className="text-xl font-bold text-gray-900 mb-2">Something went wrong</h2>
           <p className="text-sm text-gray-500 mb-6 max-w-sm">{this.state.message || 'An unexpected error occurred.'}</p>
           <button
-            onClick={() => this.setState({ hasError: false, message: '' })}
+            onClick={() => {
+              const isFailedFetch = this.state.message?.includes('Failed to fetch') ||
+                                    this.state.message?.includes('dynamically imported') ||
+                                    this.state.message?.includes('module script');
+              if (isFailedFetch) {
+                window.location.reload();
+              } else {
+                this.setState({ hasError: false, message: '' });
+              }
+            }}
             className="bg-black text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-gray-800 transition"
           >
             Try again

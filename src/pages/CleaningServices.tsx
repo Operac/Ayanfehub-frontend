@@ -15,10 +15,10 @@ const CATEGORIES = [
     icon: Home,
     title: 'Home Cleaning',
     subtitle: 'Apartments, duplexes, shortlets & homes',
-    gradient: 'from-emerald-500 to-teal-600',
-    bg: 'bg-emerald-50',
-    border: 'border-emerald-100',
-    iconColor: 'text-emerald-600',
+    gradient: 'from-primary to-primary-dark',
+    bg: 'bg-primary/5',
+    border: 'border-primary/20',
+    iconColor: 'text-primary',
     services: [
       'Basic cleaning',
       'Deep cleaning',
@@ -42,10 +42,10 @@ const CATEGORIES = [
     icon: Building2,
     title: 'Office Cleaning',
     subtitle: 'SMEs, coworking spaces, schools, clinics & corporates',
-    gradient: 'from-blue-500 to-indigo-600',
-    bg: 'bg-blue-50',
-    border: 'border-blue-100',
-    iconColor: 'text-blue-600',
+    gradient: 'from-muted to-primary-dark',
+    bg: 'bg-muted/5',
+    border: 'border-muted/20',
+    iconColor: 'text-muted',
     services: [
       'One-time cleaning',
       'Daily / weekly subscription',
@@ -66,10 +66,10 @@ const CATEGORIES = [
     icon: HardHat,
     title: 'Construction Site Cleaning',
     subtitle: 'High-value post-build cleaning with premium margins',
-    gradient: 'from-orange-500 to-amber-600',
-    bg: 'bg-orange-50',
-    border: 'border-orange-100',
-    iconColor: 'text-orange-600',
+    gradient: 'from-accent to-muted',
+    bg: 'bg-accent/5',
+    border: 'border-accent/20',
+    iconColor: 'text-accent',
     services: [
       'Post-construction debris removal',
       'Industrial dust removal',
@@ -118,7 +118,7 @@ export default function CleaningServices() {
           Spotless spaces,<br />
           <span className="text-primary">stress-free.</span>
         </h1>
-        <p className="text-lg text-muted max-w-xl mx-auto">
+        <p className="text-lg text-ink/70 max-w-xl mx-auto">
           Trusted cleaners for homes, offices, and construction sites across Lagos.
           Submit a request and get a custom quote within 24 hours.
         </p>
@@ -149,12 +149,12 @@ export default function CleaningServices() {
               </div>
 
               <h2 className="text-xl font-black text-ink mb-1">{cat.title}</h2>
-              <p className="text-sm text-muted mb-5">{cat.subtitle}</p>
+              <p className="text-sm text-ink/70 mb-5">{cat.subtitle}</p>
 
               {/* Services */}
               <ul className="space-y-2 mb-5 flex-1">
                 {cat.services.map(s => (
-                  <li key={s} className="flex items-center gap-2 text-sm text-muted">
+                  <li key={s} className="flex items-center gap-2 text-sm text-ink/80">
                     <CheckCircle2 size={13} className={cn('shrink-0', cat.iconColor)} />
                     {s}
                   </li>
@@ -167,12 +167,12 @@ export default function CleaningServices() {
                 <div className="space-y-1">
                   {cat.pricing.slice(0, 3).map(p => (
                     <div key={p.label} className="flex justify-between text-xs">
-                      <span className="text-muted">{p.label}</span>
+                      <span className="text-ink/65">{p.label}</span>
                       <span className="text-ink font-semibold">{p.hint}</span>
                     </div>
                   ))}
                 </div>
-                <p className="text-[11px] text-muted/70 mt-2 italic">{cat.pricingNote}</p>
+                <p className="text-[11px] text-ink/50 mt-2 italic">{cat.pricingNote}</p>
               </div>
 
               {/* CTA */}
@@ -195,7 +195,7 @@ export default function CleaningServices() {
       <div className="mb-20">
         <div className="text-center mb-10">
           <h2 className="text-2xl font-black text-ink mb-2">How it works</h2>
-          <p className="text-muted">Simple 6-step process from request to spotless.</p>
+          <p className="text-ink/70">Simple 6-step process from request to spotless.</p>
         </div>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
           {HOW_IT_WORKS.map((step, i) => {
@@ -217,7 +217,7 @@ export default function CleaningServices() {
                   </span>
                 </div>
                 <p className="text-xs font-bold text-ink mb-0.5">{step.label}</p>
-                <p className="text-[11px] text-muted">{step.desc}</p>
+                <p className="text-[11px] text-ink/65">{step.desc}</p>
               </motion.div>
             );
           })}
@@ -233,7 +233,7 @@ export default function CleaningServices() {
       >
         <div>
           <h3 className="text-xl font-black text-ink mb-1">Ready to get started?</h3>
-          <p className="text-muted text-sm">
+          <p className="text-ink/70 text-sm">
             No instant prices — we send you a <span className="font-bold text-ink">custom quote within 24 hours</span> via in-app notification and email.
           </p>
         </div>
@@ -258,11 +258,11 @@ export default function CleaningServices() {
       </motion.div>
 
       {/* ── Quote note ───────────────────────────────────────────────── */}
-      <div className="mt-8 flex items-start gap-3 bg-amber-50 border border-amber-100 rounded-2xl px-5 py-4">
-        <Bell size={18} className="text-amber-600 shrink-0 mt-0.5" />
+      <div className="mt-8 flex items-start gap-3 bg-accent/5 border border-accent/20 rounded-2xl px-5 py-4">
+        <Bell size={18} className="text-accent shrink-0 mt-0.5" />
         <div>
-          <p className="text-sm font-bold text-amber-800">Quotes sent within 24 hours</p>
-          <p className="text-xs text-amber-700 mt-0.5">
+          <p className="text-sm font-bold text-ink">Quotes sent within 24 hours</p>
+          <p className="text-xs text-ink/80 mt-0.5">
             After you submit your request, our team reviews the details and sends you a personalised price via your in-app notification bell and email. No automated guessing — real quotes from real people.
           </p>
         </div>

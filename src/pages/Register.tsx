@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Phone, Eye, EyeOff, Store, ArrowRight, AlertCircle, Check } from 'lucide-react';
+import { Mail, Lock, User, Phone, Eye, EyeOff, ArrowRight, AlertCircle, Check } from 'lucide-react';
 
 const PERKS = [
   'Order from 20+ Lagos markets',
@@ -54,8 +54,8 @@ export default function Register() {
         >
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2.5 mb-8">
-            <div className="size-9 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-md shadow-primary/30">
-              <Store size={18} className="text-white" />
+            <div className="size-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md shadow-primary/30">
+              <img src="/ayanfe-logo (2).png" className="w-full h-full object-cover" alt="Ayanfe logo" />
             </div>
             <span className="text-ink text-xl font-black tracking-tight">
               Ayanfe<span className="text-primary">.</span>
@@ -214,8 +214,8 @@ export default function Register() {
           className="relative z-10 max-w-sm text-center"
         >
           <div className="flex items-center justify-center gap-3 mb-12">
-            <div className="size-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-xl shadow-primary/40">
-              <Store size={24} className="text-white" />
+            <div className="size-12 rounded-2xl overflow-hidden flex items-center justify-center shadow-xl shadow-primary/40">
+              <img src="/ayanfe-logo (2).png" className="w-full h-full object-cover" alt="Ayanfe logo" />
             </div>
             <span className="text-white text-2xl font-black tracking-tight">
               Ayanfe<span className="text-primary" style={{ filter: 'brightness(1.6)' }}>.</span>

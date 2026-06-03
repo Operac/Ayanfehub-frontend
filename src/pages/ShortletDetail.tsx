@@ -211,15 +211,15 @@ export default function ShortletDetail() {
             )}
           </div>
 
-          <div className="bg-blue-50 p-4 rounded-xl flex gap-3 text-sm text-blue-700 mb-6">
-            <Info className="shrink-0 mt-0.5" size={16} />
+          <div className="bg-primary/5 border border-primary/20 p-4 rounded-xl flex gap-3 text-sm text-ink/80 mb-6">
+            <Info className="shrink-0 mt-0.5 text-primary" size={16} />
             <p>This is a booking request. You won't be charged until the admin confirms availability.</p>
           </div>
 
           <button
             onClick={handleRequest}
             disabled={isRequesting || !apartment.isAvailable}
-            className="w-full bg-orange-600 text-white py-3.5 rounded-xl font-bold hover:bg-orange-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:bg-primary-dark transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isRequesting ? 'Sending request…' : apartment.isAvailable ? 'Request to Book' : 'Currently Unavailable'}
           </button>

@@ -198,8 +198,8 @@ export default function VendorProductUpload() {
             <p className="text-xs text-muted mt-1">Paste a public image URL (Imgur, Google Drive public link, etc.)</p>
           </div>
 
-          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 mb-6">
-            <p className="text-sm text-blue-900">
+          <div className="bg-primary/5 border border-primary/20 rounded-xl p-4 mb-6">
+            <p className="text-sm text-ink/80">
               <strong>How it works:</strong> After submission, your product will be reviewed by our team within 24 hours. It will only appear to customers once approved.
             </p>
           </div>

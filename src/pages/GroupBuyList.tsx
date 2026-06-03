@@ -38,12 +38,12 @@ async function fetchEvents(): Promise<GroupBuyEvent[]> {
 }
 
 const STATUS_CONFIG = {
-  OPEN:      { label: 'Open',        color: 'text-emerald-700 bg-emerald-50' },
-  FULL:      { label: 'Full',        color: 'text-amber-700 bg-amber-50'     },
-  PAYING:    { label: 'Pay Now',     color: 'text-orange-700 bg-orange-50'   },
-  CONFIRMED: { label: 'Confirmed',   color: 'text-blue-700 bg-blue-50'       },
+  OPEN:      { label: 'Open',        color: 'text-primary bg-primary/10' },
+  FULL:      { label: 'Full',        color: 'text-muted bg-muted/10'     },
+  PAYING:    { label: 'Pay Now',     color: 'text-accent bg-accent/15'   },
+  CONFIRMED: { label: 'Confirmed',   color: 'text-primary bg-primary/10'       },
   CANCELLED: { label: 'Cancelled',   color: 'text-red-700 bg-red-50'         },
-  FULFILLED: { label: 'Fulfilled',   color: 'text-gray-700 bg-gray-100'      },
+  FULFILLED: { label: 'Fulfilled',   color: 'text-primary-dark bg-surface'      },
 };
 
 const stagger: { container: Variants; item: Variants } = {
@@ -66,14 +66,14 @@ function SlotBar({ filled, total }: { filled: number; total: number }) {
   return (
     <div className="mt-3">
       <div className="flex justify-between text-xs text-muted mb-1.5">
-        <span className={cn('font-bold', almostFull ? 'text-orange-600' : 'text-ink')}>
+        <span className={cn('font-bold', almostFull ? 'text-accent' : 'text-ink')}>
           {filled}/{total} slots filled
         </span>
         <span>{total - filled} left</span>
       </div>
       <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
         <motion.div
-          className={cn('h-full rounded-full', almostFull ? 'bg-orange-500' : 'bg-primary')}
+          className={cn('h-full rounded-full', almostFull ? 'bg-accent' : 'bg-primary')}
           initial={{ width: 0 }}
           animate={{ width: `${pct}%` }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
@@ -99,7 +99,7 @@ function EventCard({ event }: { event: GroupBuyEvent }) {
       <Link to={`/group-buy/${event.id}`} className="block group">
         <div className={cn(
           'bg-white border rounded-3xl overflow-hidden shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5',
-          isPayingAndUnpaid ? 'border-orange-200 ring-1 ring-orange-300' : 'border-gray-100'
+          isPayingAndUnpaid ? 'border-accent/30 ring-1 ring-accent/40' : 'border-gray-100'
         )}>
           {/* Image */}
           <div className="relative h-44 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
@@ -155,7 +155,7 @@ function EventCard({ event }: { event: GroupBuyEvent }) {
               <span className={cn(
                 'flex items-center gap-1 text-xs font-bold px-3 py-1.5 rounded-xl transition-colors',
                 isPayingAndUnpaid
-                  ? 'bg-orange-500 text-white'
+                  ? 'bg-accent text-primary-dark hover:bg-accent/90'
                   : 'bg-primary/10 text-primary group-hover:bg-primary group-hover:text-white'
               )}>
                 {cta} <ChevronRight size={12} />
@@ -164,7 +164,7 @@ function EventCard({ event }: { event: GroupBuyEvent }) {
 
             {/* Urgent payment warning */}
             {isPayingAndUnpaid && (
-              <div className="mt-3 flex items-center gap-2 text-xs text-orange-700 bg-orange-50 rounded-xl px-3 py-2">
+              <div className="mt-3 flex items-center gap-2 text-xs text-muted bg-accent/10 rounded-xl px-3 py-2">
                 <AlertCircle size={13} className="shrink-0" />
                 Pay before your slot is released
               </div>

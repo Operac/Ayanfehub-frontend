@@ -7,10 +7,10 @@ import Card3D from './Card3D';
 const DAY_NAMES = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
 const CATEGORY_GRADIENTS: Record<string, string> = {
-  food:       'from-emerald-500 to-primary',
-  fashion:    'from-pink-500 to-rose-600',
-  goods:      'from-blue-500 to-indigo-600',
-  artisanal:  'from-amber-500 to-orange-500',
+  food:       'from-primary to-primary-dark',
+  fashion:    'from-accent to-muted',
+  goods:      'from-muted to-primary-dark',
+  artisanal:  'from-primary to-muted',
 };
 
 function nextDeliveryLabel(runDays?: Market['runDays']): string | null {

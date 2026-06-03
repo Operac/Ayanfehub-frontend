@@ -30,8 +30,8 @@ function getSocket(): Socket {
 
 function notifIcon(type: string) {
   if (type.startsWith('GROUP_BUY')) return <Users size={14} className="text-primary" />;
-  if (type === 'ORDER_STATUS')       return <Package size={14} className="text-blue-500" />;
-  if (type.startsWith('CLEANING'))   return <Sparkles size={14} className={type === 'CLEANING_INSPECTION_SCHEDULED' ? 'text-violet-500' : 'text-emerald-500'} />;
+  if (type === 'ORDER_STATUS')       return <Package size={14} className="text-muted" />;
+  if (type.startsWith('CLEANING'))   return <Sparkles size={14} className={type === 'CLEANING_INSPECTION_SCHEDULED' ? 'text-muted' : 'text-primary'} />;
   return <Info size={14} className="text-gray-400" />;
 }
 

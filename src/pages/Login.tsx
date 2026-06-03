@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, Phone, Eye, EyeOff, Store, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Phone, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function Login() {
   const [usePhone, setUsePhone]   = useState(false);
@@ -58,8 +58,8 @@ export default function Login() {
         >
           {/* Logo */}
           <div className="flex items-center justify-center gap-3 mb-12">
-            <div className="size-12 bg-gradient-to-br from-primary to-primary-dark rounded-2xl flex items-center justify-center shadow-xl shadow-primary/40">
-              <Store size={24} className="text-white" />
+            <div className="size-12 rounded-2xl overflow-hidden flex items-center justify-center shadow-xl shadow-primary/40">
+              <img src="/ayanfe-logo (2).png" className="w-full h-full object-cover" alt="Ayanfe logo" />
             </div>
             <span className="text-white text-2xl font-black tracking-tight">
               Ayanfe<span className="text-primary" style={{ filter: 'brightness(1.6)' }}>.</span>
@@ -76,20 +76,19 @@ export default function Login() {
           {/* Floating cards */}
           <div className="mt-12 space-y-3">
             {[
-              { icon: '🛒', text: 'Groceries from Balogun Market' },
-              { icon: '🔧', text: 'Book a plumber in 10 minutes' },
-              { icon: '🏠', text: 'Short-lets from ₦8,000/night' },
-            ].map((item, i) => (
+              'Groceries from Balogun Market',
+              'Book a plumber in 10 minutes',
+              'Short-lets from ₦8,000/night',
+            ].map((text, i) => (
               <motion.div
                 key={i}
                 initial={{ opacity: 0, x: -24 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.5 + i * 0.15 }}
                 style={{ animation: `float ${5 + i}s ease-in-out infinite`, animationDelay: `${i * 0.8}s` }}
-                className="flex items-center gap-3 px-4 py-3 glass-dark rounded-2xl text-left"
+                className="flex items-center gap-3 px-5 py-3 glass-dark rounded-2xl text-left"
               >
-                <span className="text-xl">{item.icon}</span>
-                <span className="text-sm font-medium text-white/80">{item.text}</span>
+                <span className="text-sm font-medium text-white/80">{text}</span>
               </motion.div>
             ))}
           </div>
@@ -106,8 +105,8 @@ export default function Login() {
         >
           {/* Mobile logo */}
           <div className="flex lg:hidden items-center gap-2.5 mb-8">
-            <div className="size-9 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center shadow-md shadow-primary/30">
-              <Store size={18} className="text-white" />
+            <div className="size-9 rounded-xl overflow-hidden flex items-center justify-center shadow-md shadow-primary/30">
+              <img src="/ayanfe-logo (2).png" className="w-full h-full object-cover" alt="Ayanfe logo" />
             </div>
             <span className="text-ink text-xl font-black tracking-tight">
               Ayanfe<span className="text-primary">.</span>

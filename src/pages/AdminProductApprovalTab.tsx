@@ -188,7 +188,7 @@ export default function AdminProductApprovalTab() {
                       <div className="flex items-center justify-end gap-2">
                         <button
                           onClick={() => handleApprove(product.id)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 rounded-lg hover:bg-emerald-100 transition-colors text-xs font-semibold"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary-dark rounded-lg hover:bg-primary/20 transition-colors text-xs font-semibold"
                         >
                           <Check size={14} />
                           Approve

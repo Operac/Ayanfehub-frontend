@@ -116,7 +116,7 @@ function GroupBuyBannerCard({ event, index }: { event: ActiveGroupBuyEvent; inde
                 <Users size={36} className="text-primary/30" />
               </div>
             )}
-            <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-700 bg-emerald-50 shadow-sm">
+            <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-primary bg-primary/10 shadow-sm">
               Open
             </span>
           </div>
@@ -135,14 +135,14 @@ function GroupBuyBannerCard({ event, index }: { event: ActiveGroupBuyEvent; inde
             {/* Slot progress bar */}
             <div className="mb-3">
               <div className="flex justify-between text-xs text-muted mb-1">
-                <span className={cn('font-bold', almostFull ? 'text-orange-600' : 'text-ink')}>
+                <span className={cn('font-bold', almostFull ? 'text-accent' : 'text-ink')}>
                   {event.slotsFilled}/{event.totalSlots} slots
                 </span>
                 <span>{event.slotsRemaining} left</span>
               </div>
               <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
                 <div
-                  className={cn('h-full rounded-full transition-all duration-700', almostFull ? 'bg-orange-500' : 'bg-primary')}
+                  className={cn('h-full rounded-full transition-all duration-700', almostFull ? 'bg-accent' : 'bg-primary')}
                   style={{ width: `${pct}%` }}
                 />
               </div>

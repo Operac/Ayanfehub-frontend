@@ -12,13 +12,13 @@ import type { Artisan } from '../types/api';
 const CATEGORIES = ['All', 'Personal & Fashion', 'Home & Property', 'Food & Lifestyle'];
 
 const CATEGORY_STYLES: Record<string, { gradient: string; icon: React.ReactNode }> = {
-  'Personal & Fashion': { gradient: 'from-pink-500 to-rose-600', icon: <Scissors size={36} className="text-white/80" /> },
-  'Home & Property':    { gradient: 'from-blue-500 to-indigo-600', icon: <Home size={36} className="text-white/80" /> },
-  'Food & Lifestyle':   { gradient: 'from-amber-500 to-orange-500', icon: <ChefHat size={36} className="text-white/80" /> },
+  'Personal & Fashion': { gradient: 'from-accent to-muted', icon: <Scissors size={36} className="text-white/80" /> },
+  'Home & Property':    { gradient: 'from-primary to-primary-dark', icon: <Home size={36} className="text-white/80" /> },
+  'Food & Lifestyle':   { gradient: 'from-muted to-primary-dark', icon: <ChefHat size={36} className="text-white/80" /> },
 };
 
 function getCategoryStyle(category: string) {
-  return CATEGORY_STYLES[category] ?? { gradient: 'from-emerald-500 to-teal-600', icon: <Wrench size={36} className="text-white/80" /> };
+  return CATEGORY_STYLES[category] ?? { gradient: 'from-primary to-primary', icon: <Wrench size={36} className="text-white/80" /> };
 }
 
 const stagger: Variants = {
@@ -116,7 +116,7 @@ export default function Artisans() {
                   </div>
                   <div className={cn(
                     'absolute top-4 left-4 px-2.5 py-1 rounded-full text-xs font-bold',
-                    artisan.isAvailable ? 'bg-emerald-500 text-white' : 'bg-gray-800/80 text-white'
+                    artisan.isAvailable ? 'bg-primary text-white' : 'bg-gray-800/80 text-white'
                   )}>
                     {artisan.isAvailable ? '● Available' : 'Busy'}
                   </div>

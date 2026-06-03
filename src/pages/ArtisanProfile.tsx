@@ -133,7 +133,7 @@ export default function ArtisanProfile() {
           </div>
           <div className="p-8">
             <h1 className="text-3xl font-bold text-gray-900">{artisan.name}</h1>
-            <p className="text-orange-600 font-medium mb-4">{artisan.category}</p>
+            <p className="text-muted font-medium mb-4">{artisan.category}</p>
             <div className="flex gap-6 text-sm text-gray-500 flex-wrap">
               <div className="flex items-center gap-2">
                 <MapPin size={16} /> Lagos, Nigeria
@@ -202,8 +202,8 @@ export default function ArtisanProfile() {
                       className={cn(
                         'p-4 rounded-xl border cursor-pointer flex justify-between items-center transition-all',
                         selectedService?.id === service.id
-                          ? 'border-orange-500 bg-orange-50 ring-1 ring-orange-500'
-                          : 'border-gray-200 hover:border-orange-200'
+                          ? 'border-primary bg-primary/5 ring-1 ring-primary'
+                          : 'border-gray-200 hover:border-primary/30'
                       )}
                     >
                       <span className="font-medium text-gray-900">{service.serviceName}</span>
@@ -236,14 +236,14 @@ export default function ArtisanProfile() {
               <button
                 onClick={handleBook}
                 disabled={isBooking}
-                className="w-full bg-orange-600 text-white py-3.5 rounded-xl font-bold hover:bg-orange-700 transition mt-4 disabled:opacity-50"
+                className="w-full bg-primary text-white py-3.5 rounded-xl font-bold hover:bg-primary-dark transition mt-4 disabled:opacity-50"
               >
                 {isBooking ? 'Booking…' : `Book & Pay${selectedService ? ' ' + formatCurrency(selectedService.priceNgn) : ''}`}
               </button>
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="p-4 bg-blue-50 text-blue-700 text-sm rounded-xl">
+              <div className="p-4 bg-primary/5 border border-primary/20 text-ink/80 text-sm rounded-xl">
                 Describe your unique request. The artisan will review and send a custom quote.
               </div>
 

@@ -66,13 +66,13 @@ const VALID_TRANSITIONS: Record<string, string[]> = {
   CANCELLED:         [],
 };
 const STATUS_COLORS: Record<string, string> = {
-  DELIVERED:         'text-green-700 bg-green-50',
-  PAYMENT_CONFIRMED: 'text-blue-700 bg-blue-50',
-  SOURCING:          'text-amber-700 bg-amber-50',
-  AT_HUB:            'text-purple-700 bg-purple-50',
-  OUT_FOR_DELIVERY:  'text-indigo-700 bg-indigo-50',
-  PENDING_PAYMENT:   'text-amber-700 bg-amber-50',
-  CANCELLED:         'text-red-700 bg-red-50',
+  DELIVERED:         'text-primary bg-primary/10',
+  PAYMENT_CONFIRMED: 'text-primary bg-primary/10',
+  SOURCING:          'text-muted bg-muted/10',
+  AT_HUB:            'text-ink bg-surface',
+  OUT_FOR_DELIVERY:  'text-accent bg-accent/10',
+  PENDING_PAYMENT:   'text-muted bg-muted/10',
+  CANCELLED:         'text-ink/60 bg-surface',
 };
 
 type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals' | 'markets' | 'zones' | 'rates' | 'settings' | 'group-buy' | 'disputes-payouts' | 'cleaning';
@@ -370,19 +370,19 @@ export default function AdminDashboard() {
         {/* Quick Create Links */}
         <div className="flex flex-wrap gap-2">
           <Link to="/admin/vendors/create"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg text-xs font-semibold hover:bg-emerald-100 transition-colors">
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 text-primary border border-primary/20 rounded-lg text-xs font-semibold hover:bg-primary/10 transition-colors">
             <Plus size={12} /> Vendor
           </Link>
           <Link to="/admin/artisans/create"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-50 text-blue-700 border border-blue-200 rounded-lg text-xs font-semibold hover:bg-blue-100 transition-colors">
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-muted/5 text-muted border border-muted/20 rounded-lg text-xs font-semibold hover:bg-muted/10 transition-colors">
             <Plus size={12} /> Artisan
           </Link>
           <Link to="/admin/products/create"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-purple-50 text-purple-700 border border-purple-200 rounded-lg text-xs font-semibold hover:bg-purple-100 transition-colors">
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-accent/5 text-accent border border-accent/20 rounded-lg text-xs font-semibold hover:bg-accent/10 transition-colors">
             <Plus size={12} /> Product
           </Link>
           <Link to="/admin/shortlets/create"
-            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-orange-50 text-orange-700 border border-orange-200 rounded-lg text-xs font-semibold hover:bg-orange-100 transition-colors">
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/5 text-primary-dark border border-primary-dark/20 rounded-lg text-xs font-semibold hover:bg-primary/10 transition-colors">
             <Plus size={12} /> Shortlet
           </Link>
         </div>

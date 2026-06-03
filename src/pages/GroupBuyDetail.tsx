@@ -85,7 +85,7 @@ function GroupBuyPayButton({
           onClose: () => {},
         })
       }
-      className="flex-1 flex items-center justify-center gap-2 py-4 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-500/30 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-lg"
+      className="flex-1 flex items-center justify-center gap-2 py-4 bg-accent hover:bg-accent/90 text-primary-dark font-black rounded-2xl shadow-lg shadow-accent/20 disabled:opacity-50 disabled:cursor-not-allowed transition-colors text-lg"
     >
       {children}
     </button>
@@ -278,7 +278,7 @@ export default function GroupBuyDetail() {
               animate={{ opacity: 1, y: 0 }}
               className={cn(
                 'flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-semibold',
-                payCountdown.urgent ? 'bg-red-50 text-red-700' : 'bg-orange-50 text-orange-700'
+                payCountdown.urgent ? 'bg-red-50 text-red-700' : 'bg-accent/10 text-muted'
               )}
             >
               <AlertCircle size={16} className="shrink-0" />
@@ -291,7 +291,7 @@ export default function GroupBuyDetail() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="flex items-center gap-3 bg-emerald-50 text-emerald-700 rounded-2xl px-4 py-4"
+              className="flex items-center gap-3 bg-primary/10 text-primary-dark rounded-2xl px-4 py-4"
             >
               <CheckCircle2 size={20} className="shrink-0" />
               <div>
@@ -306,14 +306,14 @@ export default function GroupBuyDetail() {
 
           {/* Waitlist status */}
           {event.myWaitlistEntry && (
-            <div className="flex items-center justify-between bg-blue-50 text-blue-700 rounded-2xl px-4 py-3">
+            <div className="flex items-center justify-between bg-primary/10 text-primary-dark rounded-2xl px-4 py-3">
               <div className="flex items-center gap-2 text-sm font-semibold">
                 <Users size={16} />
                 {event.myWaitlistEntry.status === 'OFFERED'
                   ? '🎉 A slot is available! Reserve it now.'
                   : "You're on the waitlist — we'll notify you if a slot opens."}
               </div>
-              <button onClick={handleLeaveWaitlist} className="text-blue-500 hover:text-blue-700 p-1">
+              <button onClick={handleLeaveWaitlist} className="text-primary hover:text-primary-dark p-1">
                 <X size={15} />
               </button>
             </div>
@@ -403,7 +403,7 @@ export default function GroupBuyDetail() {
                     <button
                       onClick={handleInitiatePay}
                       disabled={initiatingPay}
-                      className="w-full py-4 bg-orange-500 hover:bg-orange-600 text-white font-black rounded-2xl shadow-lg shadow-orange-500/30 disabled:opacity-50 transition-colors text-lg"
+                      className="w-full py-4 bg-accent hover:bg-accent/90 text-primary-dark font-black rounded-2xl shadow-lg shadow-accent/20 disabled:opacity-50 transition-colors text-lg"
                     >
                       {initiatingPay ? 'Loading…' : `Pay Now — ${formatCurrency(mySlot.totalAmountNgn)}`}
                     </button>
@@ -424,7 +424,7 @@ export default function GroupBuyDetail() {
             {/* Paid slot */}
             {isMySlotPaid && (
               <div className="text-center py-4">
-                <CheckCircle2 size={40} className="text-emerald-500 mx-auto mb-2" />
+                <CheckCircle2 size={40} className="text-primary mx-auto mb-2" />
                 <p className="font-black text-ink">Payment confirmed</p>
                 <p className="text-sm text-muted mt-1">
                   We'll notify you when the full group is confirmed.
@@ -440,7 +440,7 @@ export default function GroupBuyDetail() {
                   <select
                     value={waitlistSlots}
                     onChange={e => setWaitlistSlots(Number(e.target.value))}
-                    className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-blue-300"
+                  className="text-sm border border-gray-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-primary/30"
                   >
                     {Array.from({ length: event.maxSlotsPerCustomer }, (_, i) => i + 1).map(n => (
                       <option key={n} value={n}>{n} slot{n > 1 ? 's' : ''}</option>
@@ -450,7 +450,7 @@ export default function GroupBuyDetail() {
                 <button
                   onClick={handleJoinWaitlist}
                   disabled={joiningWaitlist}
-                  className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl disabled:opacity-50 transition-colors text-lg"
+                  className="w-full py-4 bg-primary hover:bg-primary-dark text-white font-black rounded-2xl disabled:opacity-50 transition-colors text-lg"
                 >
                   {joiningWaitlist ? 'Joining…' : 'Join Waitlist'}
                 </button>
