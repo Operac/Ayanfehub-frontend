@@ -44,13 +44,15 @@ export default function GlobalSearch() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResults | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchError, setSearchError] = useState(false);
   const [open, setOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const search = useCallback(async (q: string) => {
-    if (!q.trim()) { setResults(null); setOpen(false); return; }
+    if (!q.trim()) { setResults(null); setOpen(false); setSearchError(false); return; }
     setLoading(true);
+    setSearchError(false);
     try {
       const [marketsRes, artisansRes, shortletsRes] = await Promise.all([
         axios.get('/markets/search', { params: { q } }),
@@ -65,7 +67,8 @@ export default function GlobalSearch() {
       });
       setOpen(true);
     } catch {
-      // silent
+      setSearchError(true);
+      setOpen(true);
     } finally {
       setLoading(false);
     }
@@ -81,6 +84,7 @@ export default function GlobalSearch() {
   const handleClear = () => {
     setQuery('');
     setResults(null);
+    setSearchError(false);
     setOpen(false);
     inputRef.current?.focus();
   };
@@ -133,11 +137,15 @@ export default function GlobalSearch() {
             <div className="px-4 py-6 text-center text-sm text-gray-400">Searching…</div>
           )}
 
-          {!loading && !hasResults && query && (
+          {!loading && searchError && (
+            <div className="px-4 py-6 text-center text-sm text-red-500">Search failed. Please try again.</div>
+          )}
+
+          {!loading && !searchError && !hasResults && query && (
             <div className="px-4 py-6 text-center text-sm text-gray-400">No results for "{query}"</div>
           )}
 
-          {!loading && hasResults && (
+          {!loading && !searchError && hasResults && (
             <div className="py-2">
               {results!.markets.length > 0 && (
                 <section>

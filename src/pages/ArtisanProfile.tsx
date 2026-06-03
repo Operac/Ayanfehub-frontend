@@ -31,7 +31,8 @@ export default function ArtisanProfile() {
   const [artisan, setArtisan] = useState<Artisan | null>(null);
   const [services, setServices] = useState<Service[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<'services' | 'custom' | 'reviews'>('services');
+  const [bookingTab, setBookingTab] = useState<'services' | 'custom'>('services');
+  const [showReviews, setShowReviews] = useState(false);
 
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [bookingDate, setBookingDate] = useState('');
@@ -114,8 +115,9 @@ export default function ArtisanProfile() {
   );
 
   if (!artisan) return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4">
+    <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-4 gap-3">
       <p className="text-xl font-bold text-gray-900 mb-2">Artisan not found</p>
+      <a href="/artisans" className="text-primary hover:underline font-semibold text-sm">Browse artisans →</a>
     </div>
   );
 
@@ -156,15 +158,15 @@ export default function ArtisanProfile() {
           </div>
         )}
 
-        {/* Reviews Tab */}
+        {/* Reviews Toggle */}
         <div>
           <button
-            onClick={() => setActiveTab(activeTab === 'reviews' ? 'services' : 'reviews')}
+            onClick={() => setShowReviews(v => !v)}
             className="text-sm font-bold text-primary hover:underline mb-4 block"
           >
-            {activeTab === 'reviews' ? 'Hide Reviews' : 'Show Reviews'}
+            {showReviews ? 'Hide Reviews' : 'Show Reviews'}
           </button>
-          {activeTab === 'reviews' && <ReviewSection artisanId={id} />}
+          {showReviews && <ReviewSection artisanId={id} />}
         </div>
       </div>
 
@@ -173,20 +175,20 @@ export default function ArtisanProfile() {
         <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6 sticky top-24">
           <div className="flex mb-6 bg-gray-100 p-1 rounded-xl">
             <button
-              onClick={() => setActiveTab('services')}
-              className={cn('flex-1 py-2.5 text-sm font-medium rounded-lg transition-all', activeTab === 'services' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900')}
+              onClick={() => setBookingTab('services')}
+              className={cn('flex-1 py-2.5 text-sm font-medium rounded-lg transition-all', bookingTab === 'services' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900')}
             >
               Fixed Services
             </button>
             <button
-              onClick={() => setActiveTab('custom')}
-              className={cn('flex-1 py-2.5 text-sm font-medium rounded-lg transition-all', activeTab === 'custom' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900')}
+              onClick={() => setBookingTab('custom')}
+              className={cn('flex-1 py-2.5 text-sm font-medium rounded-lg transition-all', bookingTab === 'custom' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900')}
             >
               Custom Request
             </button>
           </div>
 
-          {activeTab === 'services' ? (
+          {bookingTab === 'services' ? (
             <div className="space-y-4">
               <label className="block text-sm font-medium text-gray-700">Select Service</label>
               {services.length === 0 ? (
@@ -215,6 +217,7 @@ export default function ArtisanProfile() {
                 <label className="block text-xs font-semibold text-gray-500 mb-1">Date & Time</label>
                 <input
                   type="datetime-local"
+                  min={new Date().toISOString().slice(0, 16)}
                   className="w-full p-3 bg-gray-50 rounded-xl border border-gray-200 text-sm"
                   onChange={e => setBookingDate(e.target.value)}
                 />

@@ -137,7 +137,7 @@ export default function Artisans() {
                         <p className="text-muted text-sm">Contact for price</p>
                       )}
                     </div>
-                    <span className="text-xs font-bold text-primary opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
+                    <span className="text-xs font-bold text-primary flex items-center gap-1">
                       View Profile →
                     </span>
                   </div>

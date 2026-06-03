@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Plus, Trash2, Star, Camera } from 'lucide-react';
+import { MapPin, Plus, Trash2, Star, Camera, Loader2 } from 'lucide-react';
 
 interface Address {
   id: string;
@@ -35,6 +35,7 @@ export default function Profile() {
   const [newAddress, setNewAddress] = useState({ label: '', landmarkDescription: '', isDefault: false });
   const [showAddForm, setShowAddForm] = useState(false);
   const [addingAddress, setAddingAddress] = useState(false);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -154,7 +155,7 @@ export default function Profile() {
               className="absolute -bottom-1 -right-1 size-6 bg-black text-white rounded-full flex items-center justify-center hover:bg-gray-800 transition disabled:opacity-50"
               title="Change avatar"
             >
-              <Camera size={11} />
+              {uploadingAvatar ? <Loader2 size={11} className="animate-spin" /> : <Camera size={11} />}
             </button>
             <input ref={avatarInputRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarChange} />
           </div>
@@ -294,12 +295,31 @@ export default function Profile() {
                       <Star size={15} />
                     </button>
                   )}
-                  <button
-                    onClick={() => handleDeleteAddress(addr.id)}
-                    className="text-gray-400 hover:text-red-500 transition-colors"
-                  >
-                    <Trash2 size={15} />
-                  </button>
+                  {deleteConfirmId === addr.id ? (
+                    <span className="flex items-center gap-1">
+                      <button
+                        onClick={() => { handleDeleteAddress(addr.id); setDeleteConfirmId(null); }}
+                        className="text-xs text-red-600 font-bold hover:text-red-700"
+                      >
+                        Yes, delete
+                      </button>
+                      <span className="text-gray-300">·</span>
+                      <button
+                        onClick={() => setDeleteConfirmId(null)}
+                        className="text-xs text-gray-500 hover:text-gray-700"
+                      >
+                        Keep
+                      </button>
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => setDeleteConfirmId(addr.id)}
+                      className="text-gray-400 hover:text-red-500 transition-colors"
+                      title="Delete address"
+                    >
+                      <Trash2 size={15} />
+                    </button>
+                  )}
                 </div>
               </div>
             ))}

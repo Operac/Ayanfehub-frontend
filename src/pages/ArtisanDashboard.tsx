@@ -5,6 +5,7 @@ import { useToast } from '../context/ToastContext';
 import { useNavigate } from 'react-router-dom';
 import { formatCurrency, cn } from '../lib/utils';
 import { Briefcase, Star, Calendar, ToggleLeft, ToggleRight, Check, X } from 'lucide-react';
+import PayoutsTab from '../components/PayoutsTab';
 
 interface ArtisanService {
   id: string;
@@ -45,7 +46,7 @@ interface Booking {
   user: { fullName: string | null; avatarUrl: string | null };
 }
 
-type Tab = 'overview' | 'bookings' | 'edit';
+type Tab = 'overview' | 'bookings' | 'edit' | 'payouts';
 
 const STATUS_COLORS: Record<string, string> = {
   PAYMENT_CONFIRMED: 'text-blue-700 bg-blue-50',
@@ -64,6 +65,7 @@ export default function ArtisanDashboard() {
   const [artisan, setArtisan] = useState<ArtisanData | null>(null);
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingBookings, setLoadingBookings] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const [editForm, setEditForm] = useState({ name: '', bio: '', phone: '', category: '' });
@@ -85,9 +87,11 @@ export default function ArtisanDashboard() {
 
   useEffect(() => {
     if (tab === 'bookings' && bookings.length === 0) {
+      setLoadingBookings(true);
       axios.get('/artisans/me/bookings')
         .then(r => setBookings(r.data))
-        .catch(() => showToast('Failed to load bookings', 'error'));
+        .catch(() => showToast('Failed to load bookings', 'error'))
+        .finally(() => setLoadingBookings(false));
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
@@ -151,7 +155,7 @@ export default function ArtisanDashboard() {
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {(['overview', 'bookings', 'edit'] as Tab[]).map(t => (
+        {(['overview', 'bookings', 'edit', 'payouts'] as Tab[]).map(t => (
           <button key={t} onClick={() => setTab(t)}
             className={cn('px-5 py-2 rounded-lg text-sm font-medium capitalize transition',
               tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
@@ -240,7 +244,21 @@ export default function ArtisanDashboard() {
       {/* Bookings Tab */}
       {tab === 'bookings' && (
         <div className="space-y-3">
-          {bookings.length === 0 ? (
+          {loadingBookings ? (
+            <>
+              {[1, 2, 3].map(i => (
+                <div key={i} className="bg-white border border-gray-100 rounded-xl p-4 animate-pulse">
+                  <div className="flex items-center gap-3">
+                    <div className="size-9 rounded-full bg-gray-200" />
+                    <div className="flex-1 space-y-2">
+                      <div className="h-3 bg-gray-200 rounded w-1/3" />
+                      <div className="h-2 bg-gray-100 rounded w-1/4" />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </>
+          ) : bookings.length === 0 ? (
             <div className="py-16 text-center text-gray-400 bg-white rounded-2xl border border-gray-100">
               <Calendar size={32} className="mx-auto mb-2 opacity-30" />
               <p>No bookings yet</p>
@@ -334,6 +352,13 @@ export default function ArtisanDashboard() {
               <X size={15} /> Cancel
             </button>
           </div>
+        </div>
+      )}
+
+      {/* Payouts Tab */}
+      {tab === 'payouts' && (
+        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
+          <PayoutsTab />
         </div>
       )}
     </div>

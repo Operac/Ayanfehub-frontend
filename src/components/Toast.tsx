@@ -31,7 +31,7 @@ export default function ToastContainer() {
   const { toasts, dismissToast } = useToast();
 
   return (
-    <div className="fixed top-6 right-6 z-[9999] flex flex-col gap-2.5 max-w-[360px] w-full pointer-events-none">
+    <div className="fixed top-[max(1.5rem,env(safe-area-inset-top,1.5rem))] right-[max(1.5rem,env(safe-area-inset-right,1.5rem))] z-[9999] flex flex-col gap-2.5 max-w-[calc(100vw-3rem)] sm:max-w-[360px] w-full pointer-events-none">
       <AnimatePresence initial={false}>
         {toasts.map(toast => {
           const cfg = CONFIGS[toast.type as ToastType] ?? CONFIGS.info;

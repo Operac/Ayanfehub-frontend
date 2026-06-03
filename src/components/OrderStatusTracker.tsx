@@ -5,6 +5,7 @@ import { useOrderSocket } from '../hooks/useOrderSocket';
 interface OrderStatusTrackerProps {
   orderId: string | null;
   initialStatus?: string;
+  estimatedDeliveryAt?: string | null;
   onStatusChange?: (status: string) => void;
 }
 
@@ -41,6 +42,7 @@ const STATUS_DESCRIPTIONS: Record<string, string> = {
 export default function OrderStatusTracker({
   orderId,
   initialStatus = 'PENDING_PAYMENT',
+  estimatedDeliveryAt,
   // onStatusChange is kept for future integration with parent components
   onStatusChange: _unused,
 }: OrderStatusTrackerProps) {
@@ -67,11 +69,12 @@ export default function OrderStatusTracker({
 
       {/* Timeline */}
       {!isCancelled ? (
-        <div className="space-y-4">
+        <div className="flex flex-col">
           {STATUS_STAGES.map((stage, index) => {
             const Icon = stage.icon;
             const isCompleted = index <= currentStageIndex;
             const isCurrent = index === currentStageIndex;
+            const isLast = index === STATUS_STAGES.length - 1;
 
             return (
               <motion.div
@@ -79,24 +82,33 @@ export default function OrderStatusTracker({
                 initial={{ opacity: 0, x: -12 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.05 }}
-                className="flex items-center gap-4"
+                className="flex gap-4"
               >
-                {/* Icon */}
-                <motion.div
-                  animate={isCurrent ? { scale: 1.1 } : {}}
-                  className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
-                    isCompleted
-                      ? 'bg-emerald-100 text-emerald-600'
-                      : 'bg-gray-100 text-gray-400'
-                  } ${isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''}`}
-                >
-                  <Icon size={20} />
-                </motion.div>
+                {/* Left column: icon + connector */}
+                <div className="flex flex-col items-center">
+                  <motion.div
+                    animate={isCurrent ? { scale: 1.1 } : {}}
+                    className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 transition-all ${
+                      isCompleted
+                        ? 'bg-emerald-100 text-emerald-600'
+                        : 'bg-gray-100 text-gray-400'
+                    } ${isCurrent ? 'ring-2 ring-primary ring-offset-2' : ''}`}
+                  >
+                    <Icon size={20} />
+                  </motion.div>
+                  {!isLast && (
+                    <div
+                      className={`w-0.5 flex-1 min-h-[1.5rem] my-1 transition-colors ${
+                        isCompleted ? 'bg-emerald-200' : 'bg-gray-100'
+                      }`}
+                    />
+                  )}
+                </div>
 
                 {/* Content */}
-                <div className="flex-1 min-w-0">
+                <div className={`flex-1 min-w-0 ${isLast ? 'pb-0' : 'pb-4'}`}>
                   <p
-                    className={`text-sm font-semibold transition-colors ${
+                    className={`text-sm font-semibold transition-colors pt-2 ${
                       isCompleted ? 'text-ink' : 'text-gray-400'
                     }`}
                   >
@@ -112,15 +124,6 @@ export default function OrderStatusTracker({
                     </motion.div>
                   )}
                 </div>
-
-                {/* Connector line */}
-                {index < STATUS_STAGES.length - 1 && (
-                  <div
-                    className={`absolute left-[2rem] top-[4.5rem] h-8 w-1 transition-colors ${
-                      isCompleted ? 'bg-emerald-200' : 'bg-gray-100'
-                    }`}
-                  />
-                )}
               </motion.div>
             );
           })}
@@ -136,7 +139,7 @@ export default function OrderStatusTracker({
       )}
 
       {/* Delivery estimate */}
-      {!isDelivered && !isCancelled && (
+      {!isDelivered && !isCancelled && estimatedDeliveryAt && (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -144,7 +147,9 @@ export default function OrderStatusTracker({
           className="mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl"
         >
           <p className="text-xs font-semibold text-blue-900">Expected Delivery</p>
-          <p className="text-sm text-blue-700 mt-1">Saturday before 2:00 PM</p>
+          <p className="text-sm text-blue-700 mt-1">
+            {new Date(estimatedDeliveryAt).toLocaleDateString('en-NG', { weekday: 'long', month: 'short', day: 'numeric' })}
+          </p>
         </motion.div>
       )}
     </motion.div>

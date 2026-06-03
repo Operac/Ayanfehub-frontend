@@ -6,11 +6,30 @@ import { useRef } from 'react';
 import MarketCard from '../components/MarketCard';
 import { GridSkeleton } from '../components/LoadingSkeleton';
 import type { Market } from '../types/api';
-import { ArrowRight, ShoppingBag, Wrench, Home as HomeIcon, Star, Zap, Shield, Clock } from 'lucide-react';
+import { ArrowRight, ShoppingBag, Wrench, Home as HomeIcon, Star, Zap, Shield, Clock, Users, ChevronRight } from 'lucide-react';
+import { formatCurrency, cn } from '../lib/utils';
+import { useCountdown } from '../hooks/useCountdown';
 import Card3D from '../components/Card3D';
 
 async function fetchMarkets(): Promise<Market[]> {
   const { data } = await axios.get('/markets');
+  return data;
+}
+
+interface ActiveGroupBuyEvent {
+  id: string;
+  title: string;
+  imageUrl: string | null;
+  pricePerSlotNgn: number;
+  totalSlots: number;
+  slotsFilled: number;
+  slotsRemaining: number;
+  reservationDeadline: string;
+  status: string;
+}
+
+async function fetchGroupBuyEvents(): Promise<ActiveGroupBuyEvent[]> {
+  const { data } = await axios.get('/group-buy');
   return data;
 }
 
@@ -66,6 +85,77 @@ const stagger: { container: Variants; item: Variants } = {
   },
 };
 
+function GroupBuyBannerCard({ event, index }: { event: ActiveGroupBuyEvent; index: number }) {
+  const pct = Math.min(100, (event.slotsFilled / event.totalSlots) * 100);
+  const almostFull = pct >= 80;
+  const { label: countdown, urgent } = useCountdown(event.reservationDeadline);
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ delay: index * 0.07, type: 'spring', stiffness: 280, damping: 22 }}
+    >
+      <Link to={`/group-buy/${event.id}`} className="block group">
+        <div className="bg-white border border-gray-100 rounded-3xl overflow-hidden shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-300">
+          {/* Image / placeholder */}
+          <div className="relative h-36 bg-gradient-to-br from-primary/10 to-primary/5 overflow-hidden">
+            {event.imageUrl ? (
+              <img src={event.imageUrl} alt={event.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <Users size={36} className="text-primary/30" />
+              </div>
+            )}
+            <span className="absolute top-2.5 left-2.5 px-2.5 py-1 rounded-full text-[11px] font-bold text-emerald-700 bg-emerald-50 shadow-sm">
+              Open
+            </span>
+          </div>
+
+          <div className="p-4">
+            <h3 className="font-black text-ink text-base leading-tight mb-2 line-clamp-1 group-hover:text-primary transition-colors">
+              {event.title}
+            </h3>
+
+            {/* Price */}
+            <p className="text-xl font-black text-primary mb-3">
+              {formatCurrency(event.pricePerSlotNgn)}
+              <span className="text-xs font-semibold text-muted ml-1">/ slot</span>
+            </p>
+
+            {/* Slot progress bar */}
+            <div className="mb-3">
+              <div className="flex justify-between text-xs text-muted mb-1">
+                <span className={cn('font-bold', almostFull ? 'text-orange-600' : 'text-ink')}>
+                  {event.slotsFilled}/{event.totalSlots} slots
+                </span>
+                <span>{event.slotsRemaining} left</span>
+              </div>
+              <div className="h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={cn('h-full rounded-full transition-all duration-700', almostFull ? 'bg-orange-500' : 'bg-primary')}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="flex items-center justify-between">
+              <span className={cn('flex items-center gap-1 text-xs font-bold', urgent ? 'text-red-600' : 'text-muted')}>
+                <Clock size={11} /> {countdown}
+              </span>
+              <span className="flex items-center gap-1 text-xs font-bold text-primary bg-primary/10 px-2.5 py-1.5 rounded-xl group-hover:bg-primary group-hover:text-white transition-colors">
+                Join <ChevronRight size={11} />
+              </span>
+            </div>
+          </div>
+        </div>
+      </Link>
+    </motion.div>
+  );
+}
+
 export default function Home() {
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] });
@@ -81,6 +171,16 @@ export default function Home() {
     queryFn: fetchMarkets,
     staleTime: 5 * 60 * 1000,
   });
+
+  const { data: groupBuyEvents = [], isError: groupBuyError } = useQuery({
+    queryKey: ['group-buy'],
+    queryFn: fetchGroupBuyEvents,
+    staleTime: 60 * 1000,
+    refetchInterval: 60 * 1000,
+  });
+
+  // Show OPEN events only (max 3 for the banner)
+  const openEvents = groupBuyEvents.filter(e => e.status === 'OPEN').slice(0, 3);
 
   return (
     <div className="overflow-x-hidden">
@@ -264,6 +364,50 @@ export default function Home() {
           ))}
         </motion.div>
       </section>
+
+      {/* ══ GROUP BUY BANNER ═══════════════════════════ */}
+      {openEvents.length > 0 && (
+        <section className="max-w-[1280px] mx-auto px-6 md:px-10 pb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ type: 'spring', stiffness: 200 }}
+          >
+            {/* Header row */}
+            <div className="flex items-end justify-between gap-4 mb-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-bold mb-2">
+                  <Users size={12} />
+                  Group Buys — Live Now
+                </div>
+                <h2 className="text-2xl md:text-3xl font-black text-ink tracking-tight">
+                  Buy together, save together
+                </h2>
+              </div>
+              <Link
+                to="/group-buy"
+                className="flex items-center gap-1.5 text-sm font-bold text-primary hover:gap-2.5 transition-all shrink-0"
+              >
+                View all <ArrowRight size={14} />
+              </Link>
+            </div>
+
+            {/* Cards */}
+            {groupBuyError ? (
+              <div className="py-8 text-center text-sm text-muted bg-surface rounded-2xl">
+                Unable to load group buys right now. <Link to="/group-buy" className="text-primary font-semibold hover:underline">Browse all →</Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {openEvents.map((event, i) => (
+                  <GroupBuyBannerCard key={event.id} event={event} index={i} />
+                ))}
+              </div>
+            )}
+          </motion.div>
+        </section>
+      )}
 
       {/* ══ MARKETS ════════════════════════════════════ */}
       <section className="max-w-[1280px] mx-auto px-6 md:px-10 pb-24">

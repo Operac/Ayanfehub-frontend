@@ -3,9 +3,15 @@ import axios from 'axios';
 import { formatCurrency, cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { useNavigate, Link } from 'react-router-dom';
-import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus, ClipboardList } from 'lucide-react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus, ClipboardList, Store, Clock, MapPin, Truck, Settings, Sparkles } from 'lucide-react';
 import AdminProductApprovalTab from './AdminProductApprovalTab';
+import AdminSettingsTab from './AdminSettingsTab';
+import AdminDeliveryZonesTab from './AdminDeliveryZonesTab';
+import AdminDeliveryRatesTab from './AdminDeliveryRatesTab';
+import AdminGroupBuyTab from './AdminGroupBuyTab';
+import AdminDisputesPayoutsTab from './AdminDisputesPayoutsTab';
+import AdminCleaningTab from './AdminCleaningTab';
 
 interface Order {
   id: string;
@@ -49,6 +55,16 @@ interface PromoCode {
 }
 
 const ORDER_STATUSES = ['PENDING_PAYMENT', 'PAYMENT_CONFIRMED', 'SOURCING', 'AT_HUB', 'OUT_FOR_DELIVERY', 'DELIVERED', 'CANCELLED'];
+// Valid next states for each status — prevents admin from jumping to nonsensical transitions
+const VALID_TRANSITIONS: Record<string, string[]> = {
+  PENDING_PAYMENT:   ['PAYMENT_CONFIRMED', 'CANCELLED'],
+  PAYMENT_CONFIRMED: ['SOURCING', 'CANCELLED'],
+  SOURCING:          ['AT_HUB', 'CANCELLED'],
+  AT_HUB:            ['OUT_FOR_DELIVERY', 'CANCELLED'],
+  OUT_FOR_DELIVERY:  ['DELIVERED'],
+  DELIVERED:         [],
+  CANCELLED:         [],
+};
 const STATUS_COLORS: Record<string, string> = {
   DELIVERED:         'text-green-700 bg-green-50',
   PAYMENT_CONFIRMED: 'text-blue-700 bg-blue-50',
@@ -59,23 +75,61 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED:         'text-red-700 bg-red-50',
 };
 
-type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals';
+type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals' | 'markets' | 'zones' | 'rates' | 'settings' | 'group-buy' | 'disputes-payouts' | 'cleaning';
+
+interface RunDay {
+  id?: string;
+  dayOfWeek: number;
+  cutoffHour: number;
+  cutoffMinute: number;
+  isMasterConsolidation: boolean;
+}
+
+interface MarketWithRunDays {
+  id: string;
+  name: string;
+  category: string;
+  isActive: boolean;
+  runDays: RunDay[];
+}
 
 export default function AdminDashboard() {
   const { user } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
-  const [tab, setTab] = useState<Tab>('reports');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as Tab | null;
+  const validTabs: Tab[] = ['reports','orders','vendors','promos','approvals','markets','zones','rates','settings','group-buy','disputes-payouts','cleaning'];
+  const [tab, setTabState] = useState<Tab>(tabParam && validTabs.includes(tabParam) ? tabParam : 'reports');
+
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    setSearchParams(prev => { prev.set('tab', t); return prev; }, { replace: true });
+  };
 
   const [reports, setReports] = useState<Reports | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [promos, setPromos] = useState<PromoCode[]>([]);
+  const [markets, setMarkets] = useState<MarketWithRunDays[]>([]);
+  const [editingMarket, setEditingMarket] = useState<MarketWithRunDays | null>(null);
+  const [savingMarket, setSavingMarket] = useState(false);
+  const [showAddMarket, setShowAddMarket] = useState(false);
+  const [addMarketForm, setAddMarketForm] = useState({ name: '', category: '', imageUrl: '', lat: '', lng: '', isActive: false });
+  const [addingMarket, setAddingMarket] = useState(false);
   const [loadingReports, setLoadingReports] = useState(true);
   const [updatingStatus, setUpdatingStatus] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportFrom, setExportFrom] = useState('');
+  const [exportTo, setExportTo] = useState('');
   const [showPromoForm, setShowPromoForm] = useState(false);
   const [promoForm, setPromoForm] = useState({ code: '', discountType: 'FIXED', discountValue: '', description: '', minOrderNgn: '', maxUsesTotal: '', validFrom: '', validUntil: '' });
+  // Orders tab filters
+  const [orderSearch, setOrderSearch] = useState('');
+  const [orderStatusFilter, setOrderStatusFilter] = useState('ALL');
+  // Generate verification code modal
+  const [codeModal, setCodeModal] = useState<{ orderId: string; orderNumber: string; code?: string } | null>(null);
+  const [generatingCode, setGeneratingCode] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== 'ADMIN') { navigate('/'); return; }
@@ -87,6 +141,7 @@ export default function AdminDashboard() {
     if (tab === 'orders' && orders.length === 0) loadOrders();
     if (tab === 'vendors' && vendors.length === 0) loadVendors();
     if (tab === 'promos' && promos.length === 0) loadPromos();
+    if (tab === 'markets' && markets.length === 0) loadMarkets();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -125,17 +180,36 @@ export default function AdminDashboard() {
       await axios.patch('/orders/status', { orderId, status });
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
       showToast('Order status updated', 'success');
-    } catch {
-      showToast('Failed to update status', 'error');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to update status', 'error');
     } finally {
       setUpdatingStatus(null);
+    }
+  };
+
+  const handleGenerateCode = async () => {
+    if (!codeModal) return;
+    setGeneratingCode(true);
+    try {
+      const { data } = await axios.post('/admin/orders/generate-code', { orderId: codeModal.orderId });
+      setCodeModal(prev => prev ? { ...prev, code: data.code } : null);
+      showToast('Verification code generated', 'success');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to generate code', 'error');
+    } finally {
+      setGeneratingCode(false);
     }
   };
 
   const handleExportCSV = async () => {
     setIsExporting(true);
     try {
-      const res = await axios.get('/admin/reports/export', { responseType: 'blob' });
+      const params: Record<string, string> = {};
+      if (exportFrom) params.from = new Date(exportFrom).toISOString();
+      if (exportTo)   params.to   = new Date(exportTo + 'T23:59:59').toISOString();
+      const res = await axios.get('/admin/reports/export', { responseType: 'blob', params });
       const url = window.URL.createObjectURL(new Blob([res.data]));
       const a = document.createElement('a');
       a.href = url;
@@ -143,8 +217,9 @@ export default function AdminDashboard() {
       a.click();
       window.URL.revokeObjectURL(url);
       showToast('CSV exported successfully', 'success');
-    } catch {
-      showToast('Failed to export CSV', 'error');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to export CSV', 'error');
     } finally {
       setIsExporting(false);
     }
@@ -157,6 +232,86 @@ export default function AdminDashboard() {
     } catch {
       showToast('Failed to load promo codes', 'error');
     }
+  };
+
+  const loadMarkets = async () => {
+    try {
+      const { data } = await axios.get('/admin/markets');
+      setMarkets(data);
+    } catch {
+      showToast('Failed to load markets', 'error');
+    }
+  };
+
+  const openMarketEditor = (market: MarketWithRunDays) => {
+    setEditingMarket(JSON.parse(JSON.stringify(market)));
+  };
+
+  const toggleRunDay = (dayOfWeek: number) => {
+    if (!editingMarket) return;
+    const exists = editingMarket.runDays.find(d => d.dayOfWeek === dayOfWeek);
+    if (exists) {
+      setEditingMarket({ ...editingMarket, runDays: editingMarket.runDays.filter(d => d.dayOfWeek !== dayOfWeek) });
+    } else {
+      setEditingMarket({
+        ...editingMarket,
+        runDays: [...editingMarket.runDays, { dayOfWeek, cutoffHour: 20, cutoffMinute: 0, isMasterConsolidation: false }]
+      });
+    }
+  };
+
+  const updateRunDay = (dayOfWeek: number, field: keyof RunDay, value: number | boolean) => {
+    if (!editingMarket) return;
+    setEditingMarket({
+      ...editingMarket,
+      runDays: editingMarket.runDays.map(d => d.dayOfWeek === dayOfWeek ? { ...d, [field]: value } : d)
+    });
+  };
+
+  const saveMarketRunDays = async () => {
+    if (!editingMarket) return;
+    setSavingMarket(true);
+    try {
+      const { data } = await axios.put(`/admin/markets/${editingMarket.id}/run-days`, {
+        runDays: editingMarket.runDays.map(d => ({
+          dayOfWeek: d.dayOfWeek,
+          cutoffHour: d.cutoffHour,
+          cutoffMinute: d.cutoffMinute,
+          isMasterConsolidation: d.isMasterConsolidation
+        }))
+      });
+      setMarkets(prev => prev.map(m => m.id === editingMarket.id ? data.market : m));
+      setEditingMarket(null);
+      showToast('Market schedule updated', 'success');
+    } catch {
+      showToast('Failed to save schedule', 'error');
+    } finally {
+      setSavingMarket(false);
+    }
+  };
+
+  const handleAddMarket = async () => {
+    if (!addMarketForm.name || !addMarketForm.category) {
+      showToast('Name and category are required', 'error'); return;
+    }
+    setAddingMarket(true);
+    try {
+      const { data } = await axios.post('/admin/markets', {
+        name: addMarketForm.name,
+        category: addMarketForm.category,
+        imageUrl: addMarketForm.imageUrl || undefined,
+        lat: addMarketForm.lat ? parseFloat(addMarketForm.lat) : undefined,
+        lng: addMarketForm.lng ? parseFloat(addMarketForm.lng) : undefined,
+        isActive: addMarketForm.isActive
+      });
+      setMarkets(prev => [...prev, { ...data, runDays: [] }]);
+      setShowAddMarket(false);
+      setAddMarketForm({ name: '', category: '', imageUrl: '', lat: '', lng: '', isActive: false });
+      showToast('Market created', 'success');
+    } catch (e) {
+      const msg = axios.isAxiosError(e) ? e.response?.data?.message : undefined;
+      showToast(msg || 'Failed to create market', 'error');
+    } finally { setAddingMarket(false); }
   };
 
   const handleTogglePromo = async (id: string) => {
@@ -193,13 +348,17 @@ export default function AdminDashboard() {
     }
   };
 
+  const [updatingVendor, setUpdatingVendor] = useState<string | null>(null);
   const handleVendorVerification = async (vendorId: string, status: string) => {
+    setUpdatingVendor(vendorId);
     try {
       await axios.patch('/admin/vendors/verification', { vendorId, status });
       setVendors(prev => prev.map(v => v.id === vendorId ? { ...v, verificationStatus: status } : v));
       showToast('Vendor status updated', 'success');
     } catch {
       showToast('Failed to update vendor', 'error');
+    } finally {
+      setUpdatingVendor(null);
     }
   };
 
@@ -231,13 +390,26 @@ export default function AdminDashboard() {
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-1 mb-6 bg-gray-100 p-1 rounded-xl w-fit">
-        {(['reports', 'orders', 'vendors', 'promos', 'approvals'] as Tab[]).map(t => (
-          <button key={t} onClick={() => setTab(t)}
+        {([
+          { key: 'reports', label: 'Reports' },
+          { key: 'orders', label: 'Orders' },
+          { key: 'vendors', label: 'Vendors' },
+          { key: 'promos', label: 'Promos' },
+          { key: 'approvals', label: 'Approvals', icon: <ClipboardList size={14} /> },
+          { key: 'markets', label: 'Markets', icon: <Store size={14} /> },
+          { key: 'zones', label: 'Zones', icon: <MapPin size={14} /> },
+          { key: 'rates', label: 'Delivery Rates', icon: <Truck size={14} /> },
+          { key: 'group-buy', label: 'Group Buys', icon: <Users size={14} /> },
+          { key: 'disputes-payouts', label: 'Disputes & Payouts', icon: <ClipboardList size={14} /> },
+          { key: 'cleaning', label: 'Cleaning', icon: <Sparkles size={14} /> },
+          { key: 'settings', label: 'Settings', icon: <Settings size={14} /> },
+        ] as { key: Tab; label: string; icon?: React.ReactNode }[]).map(({ key, label, icon }) => (
+          <button key={key} onClick={() => setTab(key)}
             className={cn('px-4 py-2 rounded-lg text-sm font-medium capitalize transition flex items-center gap-1.5',
-              tab === t ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
+              tab === key ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-900'
             )}>
-            {t === 'approvals' && <ClipboardList size={14} />}
-            {t === 'approvals' ? 'Product Approvals' : t}
+            {icon}
+            {label}
           </button>
         ))}
       </div>
@@ -297,16 +469,25 @@ export default function AdminDashboard() {
 
             {/* Recent Orders */}
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+              <div className="p-6 border-b border-gray-100 flex flex-wrap items-center justify-between gap-3">
                 <h3 className="font-bold text-gray-900">Recent Orders</h3>
-                <button
-                  onClick={handleExportCSV}
-                  disabled={isExporting}
-                  className="flex items-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl px-4 py-2 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  <Download size={15} />
-                  {isExporting ? 'Exporting…' : 'Export CSV'}
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input type="date" value={exportFrom} onChange={e => setExportFrom(e.target.value)}
+                    className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                    title="Export from date" />
+                  <span className="text-xs text-gray-400">→</span>
+                  <input type="date" value={exportTo} onChange={e => setExportTo(e.target.value)}
+                    className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-primary"
+                    title="Export to date" />
+                  <button
+                    onClick={handleExportCSV}
+                    disabled={isExporting}
+                    className="flex items-center gap-2 text-sm font-medium text-gray-600 border border-gray-200 rounded-xl px-4 py-2 hover:bg-gray-50 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    <Download size={15} />
+                    {isExporting ? 'Exporting…' : 'Export CSV'}
+                  </button>
+                </div>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
@@ -340,57 +521,108 @@ export default function AdminDashboard() {
       )}
 
       {/* ── Orders Tab ── */}
-      {tab === 'orders' && (
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead className="bg-gray-50 border-b border-gray-100">
-                <tr>
-                  <th className="px-5 py-3 text-left font-medium text-gray-500">Order #</th>
-                  <th className="px-5 py-3 text-left font-medium text-gray-500">Customer</th>
-                  <th className="px-5 py-3 text-left font-medium text-gray-500">Status</th>
-                  <th className="px-5 py-3 text-left font-medium text-gray-500">Amount</th>
-                  <th className="px-5 py-3 text-left font-medium text-gray-500">Date</th>
-                  <th className="px-5 py-3 text-right font-medium text-gray-500">Update Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-50">
-                {orders.map(order => (
-                  <tr key={order.id} className="hover:bg-gray-50">
-                    <td className="px-5 py-3 font-mono text-xs text-gray-500">{order.orderNumber}</td>
-                    <td className="px-5 py-3 text-gray-700">{order.user?.fullName || order.user?.phone || '—'}</td>
-                    <td className="px-5 py-3">
-                      <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', STATUS_COLORS[order.status] ?? 'bg-gray-50 text-gray-600')}>
-                        {order.status.replace(/_/g, ' ')}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 font-medium">{formatCurrency(Number(order.totalNgn))}</td>
-                    <td className="px-5 py-3 text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</td>
-                    <td className="px-5 py-3 text-right">
-                      <div className="relative inline-block">
-                        <select
-                          value={order.status}
-                          disabled={updatingStatus === order.id}
-                          onChange={e => handleStatusChange(order.id, e.target.value)}
-                          className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 pr-6 appearance-none bg-gray-50 text-gray-700 disabled:opacity-50"
-                        >
-                          {ORDER_STATUSES.map(s => (
-                            <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
-                          ))}
-                        </select>
-                        <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {orders.length === 0 && (
-                  <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400">No orders found</td></tr>
-                )}
-              </tbody>
-            </table>
+      {tab === 'orders' && (() => {
+        const filteredOrders = orders.filter(o => {
+          const matchStatus = orderStatusFilter === 'ALL' || o.status === orderStatusFilter;
+          const q = orderSearch.toLowerCase();
+          const matchSearch = !q || o.orderNumber.toLowerCase().includes(q)
+            || (o.user?.fullName ?? '').toLowerCase().includes(q)
+            || (o.user?.phone ?? '').includes(q);
+          return matchStatus && matchSearch;
+        });
+        return (
+          <div className="space-y-3">
+            {/* Filters */}
+            <div className="flex flex-wrap gap-2">
+              <input
+                type="text"
+                placeholder="Search order #, customer…"
+                value={orderSearch}
+                onChange={e => setOrderSearch(e.target.value)}
+                className="flex-1 min-w-[200px] text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary"
+              />
+              <select
+                value={orderStatusFilter}
+                onChange={e => setOrderStatusFilter(e.target.value)}
+                className="text-sm border border-gray-200 rounded-xl px-3 py-2 focus:outline-none focus:ring-2 focus:ring-primary/30"
+              >
+                <option value="ALL">All statuses</option>
+                {ORDER_STATUSES.map(s => <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>)}
+              </select>
+            </div>
+            <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                      <th className="px-5 py-3 text-left font-medium text-gray-500">Order #</th>
+                      <th className="px-5 py-3 text-left font-medium text-gray-500">Customer</th>
+                      <th className="px-5 py-3 text-left font-medium text-gray-500">Status</th>
+                      <th className="px-5 py-3 text-left font-medium text-gray-500">Amount</th>
+                      <th className="px-5 py-3 text-left font-medium text-gray-500">Date</th>
+                      <th className="px-5 py-3 text-right font-medium text-gray-500">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-50">
+                    {filteredOrders.map(order => (
+                      <tr key={order.id} className="hover:bg-gray-50">
+                        <td className="px-5 py-3 font-mono text-xs text-gray-500">{order.orderNumber}</td>
+                        <td className="px-5 py-3 text-gray-700">{order.user?.fullName || order.user?.phone || '—'}</td>
+                        <td className="px-5 py-3">
+                          <span className={cn('text-xs font-semibold px-2 py-0.5 rounded-full', STATUS_COLORS[order.status] ?? 'bg-gray-50 text-gray-600')}>
+                            {order.status.replace(/_/g, ' ')}
+                          </span>
+                        </td>
+                        <td className="px-5 py-3 font-medium">{formatCurrency(Number(order.totalNgn))}</td>
+                        <td className="px-5 py-3 text-gray-400">{new Date(order.createdAt).toLocaleDateString()}</td>
+                        <td className="px-5 py-3 text-right">
+                          <div className="flex items-center justify-end gap-2">
+                            {order.status === 'OUT_FOR_DELIVERY' && (
+                              <button
+                                onClick={() => setCodeModal({ orderId: order.id, orderNumber: order.orderNumber })}
+                                className="text-xs font-semibold px-2.5 py-1.5 bg-indigo-50 text-indigo-700 rounded-lg hover:bg-indigo-100 transition-colors whitespace-nowrap"
+                                title="Generate delivery verification code"
+                              >
+                                Get Code
+                              </button>
+                            )}
+                            {(() => {
+                              const nextStatuses = VALID_TRANSITIONS[order.status] ?? [];
+                              return nextStatuses.length > 0 ? (
+                                <div className="relative inline-block">
+                                  <select
+                                    value=""
+                                    disabled={updatingStatus === order.id}
+                                    onChange={e => { if (e.target.value) handleStatusChange(order.id, e.target.value); }}
+                                    className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 pr-6 appearance-none bg-gray-50 text-gray-700 disabled:opacity-50"
+                                  >
+                                    <option value="" disabled>Move to…</option>
+                                    {nextStatuses.map(s => (
+                                      <option key={s} value={s}>{s.replace(/_/g, ' ')}</option>
+                                    ))}
+                                  </select>
+                                  <ChevronDown size={11} className="absolute right-1.5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
+                                </div>
+                              ) : (
+                                <span className="text-xs text-gray-400 italic px-2">Final</span>
+                              );
+                            })()}
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                    {filteredOrders.length === 0 && (
+                      <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400">
+                        {orders.length === 0 ? 'No orders found' : 'No orders match your filters'}
+                      </td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Promos Tab ── */}
       {tab === 'promos' && (
@@ -540,7 +772,8 @@ export default function AdminDashboard() {
                       <select
                         value={v.verificationStatus}
                         onChange={e => handleVendorVerification(v.id, e.target.value)}
-                        className={cn('text-xs border rounded-lg px-2 py-1.5 appearance-none font-semibold',
+                        disabled={updatingVendor === v.id}
+                        className={cn('text-xs border rounded-lg px-2 py-1.5 appearance-none font-semibold disabled:opacity-50 disabled:cursor-wait',
                           v.verificationStatus === 'VERIFIED'  ? 'border-green-200 bg-green-50 text-green-700' :
                           v.verificationStatus === 'SUSPENDED' ? 'border-red-200 bg-red-50 text-red-700' :
                           'border-amber-200 bg-amber-50 text-amber-700'
@@ -572,6 +805,319 @@ export default function AdminDashboard() {
             </div>
           </div>
           <AdminProductApprovalTab />
+        </div>
+      )}
+
+      {/* ── Markets Tab ── */}
+      {tab === 'markets' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Market Schedules</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Set delivery days and order cutoff times for each market</p>
+            </div>
+            <button onClick={() => setShowAddMarket(true)}
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white text-sm font-semibold rounded-xl hover:bg-primary-dark">
+              <Plus size={15} /> Add Market
+            </button>
+          </div>
+          <div className="space-y-3">
+            {markets.length === 0 && <p className="text-sm text-gray-400 py-8 text-center">No markets found</p>}
+            {markets.map(market => (
+              <div key={market.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:border-gray-200 transition-colors">
+                <div>
+                  <p className="font-semibold text-gray-900">{market.name}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{market.category}</p>
+                  {market.runDays.length === 0 ? (
+                    <p className="text-xs text-amber-600 mt-1">No delivery days set</p>
+                  ) : (
+                    <div className="flex flex-wrap gap-1.5 mt-2">
+                      {market.runDays.map(d => (
+                        <span key={d.dayOfWeek} className="inline-flex items-center gap-1 px-2 py-0.5 bg-primary/10 text-primary rounded-full text-xs font-semibold">
+                          {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.dayOfWeek]}
+                          <span className="text-primary/70">
+                            · cutoff {String(d.cutoffHour).padStart(2,'0')}:{String(d.cutoffMinute).padStart(2,'0')}
+                          </span>
+                          {d.isMasterConsolidation && <span className="ml-0.5 text-primary/50">(master)</span>}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => openMarketEditor(market)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <Clock size={13} />
+                  Edit Schedule
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Delivery Zones Tab ── */}
+      {tab === 'zones' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <AdminDeliveryZonesTab />
+        </div>
+      )}
+
+      {/* ── Delivery Rates Tab ── */}
+      {tab === 'rates' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <AdminDeliveryRatesTab />
+        </div>
+      )}
+
+      {/* ── Group Buy Tab ── */}
+      {tab === 'group-buy' && (
+        <AdminGroupBuyTab />
+      )}
+
+      {/* ── Disputes & Payouts Tab ── */}
+      {tab === 'disputes-payouts' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <AdminDisputesPayoutsTab />
+        </div>
+      )}
+
+      {/* ── Cleaning Tab ── */}
+      {tab === 'cleaning' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-bold text-gray-900">Cleaning Requests</h2>
+              <p className="text-sm text-gray-500 mt-0.5">Review submissions, send quotes & manage assignments</p>
+            </div>
+          </div>
+          <AdminCleaningTab />
+        </div>
+      )}
+
+      {/* ── Settings Tab ── */}
+      {tab === 'settings' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
+          <h2 className="text-lg font-bold text-gray-900 mb-6">Platform Settings</h2>
+          <AdminSettingsTab />
+        </div>
+      )}
+
+      {/* ── Add Market Modal ── */}
+      {showAddMarket && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6">
+            <div className="flex items-center justify-between mb-5">
+              <h3 className="font-bold text-gray-900">Add New Market</h3>
+              <button onClick={() => setShowAddMarket(false)} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                <span className="text-gray-400 text-lg leading-none">×</span>
+              </button>
+            </div>
+
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Market Name *</label>
+                <input
+                  value={addMarketForm.name}
+                  onChange={e => setAddMarketForm(p => ({ ...p, name: e.target.value }))}
+                  placeholder="e.g., Oyingbo Market"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Category *</label>
+                <input
+                  value={addMarketForm.category}
+                  onChange={e => setAddMarketForm(p => ({ ...p, category: e.target.value }))}
+                  placeholder="e.g., Foodstuff & Groceries"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-1">Image URL</label>
+                <input
+                  value={addMarketForm.imageUrl}
+                  onChange={e => setAddMarketForm(p => ({ ...p, imageUrl: e.target.value }))}
+                  placeholder="https://…"
+                  className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Latitude</label>
+                  <input
+                    type="number"
+                    value={addMarketForm.lat}
+                    onChange={e => setAddMarketForm(p => ({ ...p, lat: e.target.value }))}
+                    placeholder="6.5244"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-1">Longitude</label>
+                  <input
+                    type="number"
+                    value={addMarketForm.lng}
+                    onChange={e => setAddMarketForm(p => ({ ...p, lng: e.target.value }))}
+                    placeholder="3.3792"
+                    className="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+                  />
+                </div>
+              </div>
+
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={addMarketForm.isActive}
+                  onChange={e => setAddMarketForm(p => ({ ...p, isActive: e.target.checked }))}
+                  className="rounded"
+                />
+                <span className="text-sm font-semibold text-gray-700">Active (visible to customers)</span>
+              </label>
+            </div>
+
+            <div className="flex gap-3 mt-6">
+              <button
+                onClick={() => setShowAddMarket(false)}
+                className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50 text-sm"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleAddMarket}
+                disabled={addingMarket}
+                className="flex-1 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark disabled:opacity-50 text-sm"
+              >
+                {addingMarket ? 'Creating…' : 'Create Market'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Generate Verification Code Modal ── */}
+      {codeModal && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-2xl">
+            <div className="flex items-center justify-between mb-4">
+              <div>
+                <h3 className="font-bold text-gray-900">Delivery Verification Code</h3>
+                <p className="text-xs text-gray-400 mt-0.5">{codeModal.orderNumber}</p>
+              </div>
+              <button onClick={() => setCodeModal(null)} className="p-1.5 hover:bg-gray-100 rounded-lg">
+                <span className="text-gray-400 text-lg leading-none">×</span>
+              </button>
+            </div>
+            {codeModal.code ? (
+              <div>
+                <p className="text-xs text-gray-500 mb-3">Share this code with the delivery agent. The customer must enter it to confirm receipt.</p>
+                <div className="text-center py-6 bg-indigo-50 rounded-xl mb-4">
+                  <span className="text-5xl font-black tracking-[0.3em] text-indigo-700">{codeModal.code}</span>
+                </div>
+                <p className="text-xs text-gray-400 text-center">This code is valid until the customer confirms delivery.</p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-xs text-gray-500 mb-5">Generate a 6-digit code for the delivery agent. The customer will enter this code in the app to confirm they received their order.</p>
+                <button
+                  onClick={handleGenerateCode}
+                  disabled={generatingCode}
+                  className="w-full py-3 bg-indigo-600 text-white font-bold rounded-xl hover:bg-indigo-700 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {generatingCode ? '…Generating' : 'Generate Code'}
+                </button>
+              </div>
+            )}
+            <button onClick={() => setCodeModal(null)} className="w-full mt-3 py-2.5 border border-gray-200 text-gray-600 font-semibold rounded-xl hover:bg-gray-50 text-sm">
+              Close
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Market Schedule Editor Modal ── */}
+      {editingMarket && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl max-w-lg w-full p-6 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between mb-6">
+              <div>
+                <h3 className="text-lg font-bold text-gray-900">{editingMarket.name}</h3>
+                <p className="text-sm text-gray-400">Set delivery days and order cutoff times</p>
+              </div>
+              <button onClick={() => setEditingMarket(null)} className="p-2 hover:bg-gray-100 rounded-lg">
+                <span className="text-gray-400 text-lg leading-none">×</span>
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((dayName, i) => {
+                const runDay = editingMarket.runDays.find(d => d.dayOfWeek === i);
+                const active = !!runDay;
+                return (
+                  <div key={i} className={cn('border rounded-xl p-4 transition-colors', active ? 'border-primary/30 bg-primary/5' : 'border-gray-100')}>
+                    <div className="flex items-center gap-3">
+                      <button
+                        onClick={() => toggleRunDay(i)}
+                        className={cn('w-10 h-6 rounded-full transition-colors flex-shrink-0', active ? 'bg-primary' : 'bg-gray-200')}
+                      >
+                        <span className={cn('block w-4 h-4 bg-white rounded-full mx-auto transition-transform shadow-sm', active ? 'translate-x-5' : 'translate-x-0')} />
+                      </button>
+                      <span className="font-semibold text-gray-900 w-10">{dayName}</span>
+                      {active && (
+                        <div className="flex items-center gap-2 ml-auto flex-wrap">
+                          <label className="text-xs text-gray-500">Cutoff</label>
+                          <select
+                            value={runDay.cutoffHour}
+                            onChange={e => updateRunDay(i, 'cutoffHour', parseInt(e.target.value))}
+                            className="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            {Array.from({ length: 24 }, (_, h) => (
+                              <option key={h} value={h}>
+                                {h === 0 ? '12 AM' : h < 12 ? `${h} AM` : h === 12 ? '12 PM' : `${h - 12} PM`}
+                              </option>
+                            ))}
+                          </select>
+                          <select
+                            value={runDay.cutoffMinute}
+                            onChange={e => updateRunDay(i, 'cutoffMinute', parseInt(e.target.value))}
+                            className="px-2 py-1 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary"
+                          >
+                            {[0, 15, 30, 45].map(m => (
+                              <option key={m} value={m}>{String(m).padStart(2, '0')}</option>
+                            ))}
+                          </select>
+                          <label className="flex items-center gap-1.5 text-xs text-gray-500 ml-2">
+                            <input
+                              type="checkbox"
+                              checked={runDay.isMasterConsolidation}
+                              onChange={e => updateRunDay(i, 'isMasterConsolidation', e.target.checked)}
+                              className="rounded"
+                            />
+                            Master
+                          </label>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            <p className="text-xs text-gray-400 mt-4">Cutoff = latest time customers can place orders for this delivery day. "Master" = consolidation run.</p>
+
+            <div className="flex gap-3 mt-6">
+              <button onClick={() => setEditingMarket(null)} className="flex-1 px-4 py-2.5 border border-gray-200 text-gray-700 font-semibold rounded-xl hover:bg-gray-50">
+                Cancel
+              </button>
+              <button onClick={saveMarketRunDays} disabled={savingMarket} className="flex-1 px-4 py-2.5 bg-primary text-white font-semibold rounded-xl hover:bg-primary-dark disabled:opacity-50">
+                {savingMarket ? 'Saving...' : 'Save Schedule'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

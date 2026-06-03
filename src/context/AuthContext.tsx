@@ -14,15 +14,17 @@ interface User {
 }
 
 interface LoginCredentials {
-  email: string;
+  /** Either phone or email must be provided */
+  phone?: string;
+  email?: string;
   password: string;
 }
 
 interface RegisterCredentials {
-  email: string;
+  phone: string;   // required by backend
+  email?: string;
   password: string;
-  fullName: string;
-  role?: string;
+  fullName?: string;
 }
 
 interface AuthContextType {

@@ -93,10 +93,12 @@ export default function Shortlets() {
                   </div>
                 )}
                 <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-black text-ink shadow-sm flex items-center gap-1">
-                  <Star size={11} className="text-amber-500 fill-amber-500" />
-                  4.8
-                </div>
+                {apt.ratingAverage != null && (
+                  <div className="absolute top-4 right-4 bg-white/95 backdrop-blur-sm px-3 py-1.5 rounded-full text-xs font-black text-ink shadow-sm flex items-center gap-1">
+                    <Star size={11} className="text-amber-500 fill-amber-500" />
+                    {Number(apt.ratingAverage).toFixed(1)}
+                  </div>
+                )}
                 {!apt.isAvailable && (
                   <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
                     <span className="bg-white/90 backdrop-blur text-ink font-black px-5 py-2 rounded-full text-sm">
@@ -125,7 +127,7 @@ export default function Shortlets() {
                       <Home size={11} /> AC
                     </div>
                   )}
-                  {!apt.amenities?.length && (
+                  {apt.amenities == null && (
                     <>
                       <div className="flex items-center gap-1 text-xs text-muted bg-surface px-2.5 py-1 rounded-full">
                         <Wifi size={11} /> WiFi

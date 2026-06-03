@@ -189,6 +189,11 @@
       #0A1628;
   }
 
+  /* Form input base style — used across admin and vendor forms */
+  .input-base {
+    @apply w-full px-3.5 py-2.5 rounded-xl border border-gray-200 text-sm text-ink bg-white placeholder:text-muted/50 focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors;
+  }
+
   /* Noise texture overlay */
   .noise::after {
     content: '';

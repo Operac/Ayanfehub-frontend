@@ -1,11 +1,26 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import MainLayout from './layouts/MainLayout';
+
+function RequireAuth({ children }: { children: React.ReactNode }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  return <>{children}</>;
+}
+
+function RequireRole({ children, roles }: { children: React.ReactNode; roles: string[] }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/login" replace />;
+  if (!roles.includes(user.role)) return <Navigate to="/" replace />;
+  return <>{children}</>;
+}
 
 // Eagerly loaded (small, always needed)
 import Home from './pages/Home';
@@ -32,6 +47,10 @@ const AdminVendorCreate   = lazy(() => import('./pages/AdminVendorCreate'));
 const AdminArtisanCreate  = lazy(() => import('./pages/AdminArtisanCreate'));
 const AdminProductCreate  = lazy(() => import('./pages/AdminProductCreate'));
 const AdminShortletCreate = lazy(() => import('./pages/AdminShortletCreate'));
+const CleaningServices    = lazy(() => import('./pages/CleaningServices'));
+const CleaningRequestForm = lazy(() => import('./pages/CleaningRequestForm'));
+const GroupBuyList        = lazy(() => import('./pages/GroupBuyList'));
+const GroupBuyDetail      = lazy(() => import('./pages/GroupBuyDetail'));
 
 function PageLoader() {
   return (
@@ -59,7 +78,6 @@ function App() {
                     {/* Marketplace */}
                     <Route path="/marketplace" element={<Marketplace />} />
                     <Route path="/markets/:id" element={<MarketDetail />} />
-                    <Route path="/cart" element={<CartPage />} />
 
                     {/* Artisans */}
                     <Route path="/artisans" element={<Artisans />} />
@@ -69,23 +87,32 @@ function App() {
                     <Route path="/shortlets" element={<Shortlets />} />
                     <Route path="/shortlets/:id" element={<ShortletDetail />} />
 
-                    {/* User */}
-                    <Route path="/orders" element={<Orders />} />
-                    <Route path="/profile" element={<Profile />} />
+                    {/* User — must be logged in */}
+                    <Route path="/orders" element={<RequireAuth><Orders /></RequireAuth>} />
+                    <Route path="/profile" element={<RequireAuth><Profile /></RequireAuth>} />
+                    <Route path="/cart" element={<RequireAuth><CartPage /></RequireAuth>} />
 
-                    {/* Dashboards */}
-                    <Route path="/vendor" element={<VendorDashboard />} />
-                    <Route path="/artisan-dashboard" element={<ArtisanDashboard />} />
-                    <Route path="/admin" element={<AdminDashboard />} />
+                    {/* Vendor dashboard — VENDOR or ADMIN only */}
+                    <Route path="/vendor" element={<RequireRole roles={['VENDOR','ADMIN']}><VendorDashboard /></RequireRole>} />
+                    <Route path="/vendor/upload-product" element={<RequireRole roles={['VENDOR','ADMIN']}><VendorProductUpload /></RequireRole>} />
 
-                    {/* Vendor: Product Upload */}
-                    <Route path="/vendor/upload-product" element={<VendorProductUpload />} />
+                    {/* Artisan dashboard — ARTISAN or ADMIN only */}
+                    <Route path="/artisan-dashboard" element={<RequireRole roles={['ARTISAN','ADMIN']}><ArtisanDashboard /></RequireRole>} />
 
-                    {/* Admin: Content Creation */}
-                    <Route path="/admin/vendors/create"   element={<AdminVendorCreate />} />
-                    <Route path="/admin/artisans/create"  element={<AdminArtisanCreate />} />
-                    <Route path="/admin/products/create"  element={<AdminProductCreate />} />
-                    <Route path="/admin/shortlets/create" element={<AdminShortletCreate />} />
+                    {/* Admin-only routes */}
+                    <Route path="/admin" element={<RequireRole roles={['ADMIN']}><AdminDashboard /></RequireRole>} />
+                    <Route path="/admin/vendors/create"   element={<RequireRole roles={['ADMIN']}><AdminVendorCreate /></RequireRole>} />
+                    <Route path="/admin/artisans/create"  element={<RequireRole roles={['ADMIN']}><AdminArtisanCreate /></RequireRole>} />
+                    <Route path="/admin/products/create"  element={<RequireRole roles={['ADMIN']}><AdminProductCreate /></RequireRole>} />
+                    <Route path="/admin/shortlets/create" element={<RequireRole roles={['ADMIN']}><AdminShortletCreate /></RequireRole>} />
+
+                    {/* Group Buy */}
+                    <Route path="/group-buy" element={<GroupBuyList />} />
+                    <Route path="/group-buy/:id" element={<RequireAuth><GroupBuyDetail /></RequireAuth>} />
+
+                    {/* Cleaning Services */}
+                    <Route path="/cleaning" element={<CleaningServices />} />
+                    <Route path="/cleaning/book" element={<RequireAuth><CleaningRequestForm /></RequireAuth>} />
                   </Route>
                 </Routes>
               </Suspense>

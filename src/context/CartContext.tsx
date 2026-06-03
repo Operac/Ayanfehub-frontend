@@ -1,16 +1,17 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 
-interface CartItem {
+export interface CartItem {
   id: string;
   name: string;
   market_id: string;
   price: number;
   unit?: string;
   quantity: number;
+  addedAt: string; // ISO timestamp — used for staleness warnings
 }
 
-type AddToCartPayload = Omit<CartItem, 'quantity'>;
+type AddToCartPayload = Omit<CartItem, 'quantity' | 'addedAt'>;
 
 interface CartContextType {
   cart: CartItem[];
@@ -46,9 +47,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     setCart(prev => {
       const existing = prev.find(i => i.id === item.id);
       if (existing) {
+        // Bump quantity but keep original addedAt so staleness is tracked from first add
         return prev.map(i => i.id === item.id ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { ...item, quantity: 1 }];
+      return [...prev, { ...item, quantity: 1, addedAt: new Date().toISOString() }];
     });
   };
 

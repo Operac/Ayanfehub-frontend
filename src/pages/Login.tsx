@@ -3,14 +3,15 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, Eye, EyeOff, Store, ArrowRight, AlertCircle } from 'lucide-react';
+import { Mail, Lock, Phone, Eye, EyeOff, Store, ArrowRight, AlertCircle } from 'lucide-react';
 
 export default function Login() {
-  const [email, setEmail]       = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw, setShowPw]     = useState(false);
-  const [error, setError]       = useState('');
-  const [loading, setLoading]   = useState(false);
+  const [usePhone, setUsePhone]   = useState(false);
+  const [identifier, setId]       = useState('');
+  const [password, setPassword]   = useState('');
+  const [showPw, setShowPw]       = useState(false);
+  const [error, setError]         = useState('');
+  const [loading, setLoading]     = useState(false);
   const { login }  = useAuth();
   const navigate   = useNavigate();
 
@@ -19,7 +20,10 @@ export default function Login() {
     setError('');
     setLoading(true);
     try {
-      await login({ email, password });
+      const creds = usePhone
+        ? { phone: identifier, password }
+        : { email: identifier, password };
+      await login(creds);
       navigate('/');
     } catch (err) {
       const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
@@ -129,16 +133,33 @@ export default function Login() {
           </AnimatePresence>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {/* Email */}
+            {/* Login method toggle */}
+            <div className="flex rounded-2xl border border-gray-200 overflow-hidden text-sm font-semibold">
+              <button type="button" onClick={() => { setUsePhone(false); setId(''); }}
+                className={`flex-1 py-2.5 transition-colors ${!usePhone ? 'bg-primary text-white' : 'bg-white text-muted hover:bg-surface'}`}>
+                Email
+              </button>
+              <button type="button" onClick={() => { setUsePhone(true); setId(''); }}
+                className={`flex-1 py-2.5 transition-colors ${usePhone ? 'bg-primary text-white' : 'bg-white text-muted hover:bg-surface'}`}>
+                Phone
+              </button>
+            </div>
+
+            {/* Identifier (email or phone) */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Email address</label>
+              <label className="block text-xs font-bold text-ink mb-2">
+                {usePhone ? 'Phone number' : 'Email address'}
+              </label>
               <div className="relative">
-                <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                {usePhone
+                  ? <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                  : <Mail  size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                }
                 <input
-                  type="email"
-                  value={email}
-                  onChange={e => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  type={usePhone ? 'tel' : 'email'}
+                  value={identifier}
+                  onChange={e => setId(e.target.value)}
+                  placeholder={usePhone ? '08012345678' : 'you@example.com'}
                   required
                   className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                 />
@@ -166,6 +187,11 @@ export default function Login() {
                   {showPw ? <EyeOff size={16} /> : <Eye size={16} />}
                 </button>
               </div>
+            </div>
+
+            {/* Forgot password */}
+            <div className="text-right -mt-2 mb-2">
+              <span className="text-xs text-muted">Forgot your password? Contact support via WhatsApp.</span>
             </div>
 
             {/* Submit */}

@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mail, Lock, User, Eye, EyeOff, Store, ArrowRight, AlertCircle, Check } from 'lucide-react';
+import { Mail, Lock, User, Phone, Eye, EyeOff, Store, ArrowRight, AlertCircle, Check } from 'lucide-react';
 
 const PERKS = [
   'Order from 20+ Lagos markets',
@@ -13,7 +13,7 @@ const PERKS = [
 ];
 
 export default function Register() {
-  const [form, setForm] = useState({ fullName: '', email: '', password: '' });
+  const [form, setForm] = useState({ fullName: '', phone: '', email: '', password: '' });
   const [showPw, setShowPw]   = useState(false);
   const [error, setError]     = useState('');
   const [loading, setLoading] = useState(false);
@@ -28,7 +28,7 @@ export default function Register() {
     setError('');
     setLoading(true);
     try {
-      await register({ email: form.email, password: form.password, role: 'customer', fullName: form.fullName });
+      await register({ phone: form.phone, email: form.email || undefined, password: form.password, fullName: form.fullName });
       navigate('/');
     } catch (err) {
       const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
@@ -82,7 +82,7 @@ export default function Register() {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Full Name */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Full name</label>
+              <label className="block text-xs font-bold text-ink mb-2">Full name <span className="text-red-500">*</span></label>
               <div className="relative">
                 <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                 <input
@@ -96,9 +96,26 @@ export default function Register() {
               </div>
             </div>
 
+            {/* Phone */}
+            <div>
+              <label className="block text-xs font-bold text-ink mb-2">Phone number <span className="text-red-500">*</span></label>
+              <div className="relative">
+                <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+                <input
+                  type="tel"
+                  value={form.phone}
+                  onChange={set('phone')}
+                  placeholder="08012345678"
+                  required
+                  minLength={7}
+                  className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                />
+              </div>
+            </div>
+
             {/* Email */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Email address</label>
+              <label className="block text-xs font-bold text-ink mb-2">Email address <span className="text-muted text-[11px] font-normal">(optional)</span></label>
               <div className="relative">
                 <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                 <input
@@ -106,7 +123,6 @@ export default function Register() {
                   value={form.email}
                   onChange={set('email')}
                   placeholder="you@example.com"
-                  required
                   className="w-full pl-11 pr-4 py-3.5 bg-white border border-gray-200 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
                 />
               </div>
@@ -114,7 +130,7 @@ export default function Register() {
 
             {/* Password */}
             <div>
-              <label className="block text-xs font-bold text-ink mb-2">Password</label>
+              <label className="block text-xs font-bold text-ink mb-2">Password <span className="text-red-500">*</span></label>
               <div className="relative">
                 <Lock size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
                 <input

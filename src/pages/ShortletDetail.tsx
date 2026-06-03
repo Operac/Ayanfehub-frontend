@@ -113,16 +113,16 @@ export default function ShortletDetail() {
             </div>
           )}
           <div className="hidden md:grid grid-rows-2 gap-2">
-            <img
-              src={apartment.images?.[1] || apartment.images?.[0] || ''}
-              alt=""
-              className="w-full h-full object-cover"
-            />
-            <img
-              src={apartment.images?.[2] || apartment.images?.[0] || ''}
-              alt=""
-              className="w-full h-full object-cover"
-            />
+            {apartment.images?.[1] ? (
+              <img src={apartment.images[1]} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-100" />
+            )}
+            {apartment.images?.[2] ? (
+              <img src={apartment.images[2]} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <div className="w-full h-full bg-gray-100" />
+            )}
           </div>
         </div>
 

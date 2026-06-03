@@ -2,13 +2,14 @@ import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence, type Variants } from 'framer-motion';
 import { formatCurrency, cn } from '../lib/utils';
 import {
   Package, ShoppingBag, Star, TrendingUp,
   ToggleLeft, ToggleRight, ChevronDown, Plus, Pencil, X, Check,
 } from 'lucide-react';
+import PayoutsTab from '../components/PayoutsTab';
 
 interface VendorStats {
   vendor: {
@@ -88,7 +89,7 @@ const VERIFICATION_STYLE: Record<string, string> = {
   PENDING:   'bg-amber-50 text-amber-700 border-amber-200',
 };
 
-type Tab = 'overview' | 'products' | 'orders';
+type Tab = 'overview' | 'products' | 'orders' | 'payouts';
 
 const stagger: { container: Variants; item: Variants } = {
   container: { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.07 } } },
@@ -99,11 +100,23 @@ export default function VendorDashboard() {
   const { user }     = useAuth();
   const { showToast } = useToast();
   const navigate     = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabParam = searchParams.get('tab') as Tab | null;
+  const validVendorTabs: Tab[] = ['overview', 'products', 'orders', 'payouts'];
 
-  const [tab,         setTab]         = useState<Tab>('overview');
+  const [tab, setTabState] = useState<Tab>(tabParam && validVendorTabs.includes(tabParam) ? tabParam : 'overview');
+
+  const setTab = (t: Tab) => {
+    setTabState(t);
+    setSearchParams(prev => { prev.set('tab', t); return prev; }, { replace: true });
+  };
   const [statsData,   setStatsData]   = useState<VendorStats | null>(null);
   const [products,    setProducts]    = useState<Product[]>([]);
   const [orderItems,  setOrderItems]  = useState<OrderItem[]>([]);
+  const [ordersPage,  setOrdersPage]  = useState(1);
+  const [ordersTotal, setOrdersTotal] = useState(0);
+  const [ordersPages, setOrdersPages] = useState(1);
+  const [loadingOrders, setLoadingOrders] = useState(false);
   const [loading,     setLoading]     = useState(true);
   const [expandedRow, setExpandedRow] = useState<string | null>(null);
   const [editState,   setEditState]   = useState<EditState>({
@@ -120,16 +133,29 @@ export default function VendorDashboard() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user, navigate]);
 
+  const loadOrders = async (page: number) => {
+    setLoadingOrders(true);
+    try {
+      const { data } = await axios.get('/vendors/me/orders', { params: { page, limit: 20 } });
+      setOrderItems(data.data);
+      setOrdersTotal(data.total);
+      setOrdersPages(data.pages);
+      setOrdersPage(page);
+    } catch {
+      showToast('Failed to load orders', 'error');
+    } finally {
+      setLoadingOrders(false);
+    }
+  };
+
   useEffect(() => {
-    if (tab === 'products' && products.length === 0) {
+    if (tab === 'products') {
       axios.get('/vendors/me/products')
         .then(r => setProducts(r.data))
         .catch(() => showToast('Failed to load products', 'error'));
     }
     if (tab === 'orders' && orderItems.length === 0) {
-      axios.get('/vendors/me/orders')
-        .then(r => setOrderItems(r.data))
-        .catch(() => showToast('Failed to load orders', 'error'));
+      loadOrders(1);
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
@@ -158,6 +184,19 @@ export default function VendorDashboard() {
 
   const closeEdit = () => setEditState(prev => ({ ...prev, productId: null }));
 
+  const handleResubmit = async (productId: string, productName: string) => {
+    try {
+      await axios.post(`/vendors/me/products/${productId}/resubmit`);
+      setProducts(prev => prev.map(p =>
+        p.id === productId ? { ...p, approvalStatus: 'PENDING_APPROVAL', rejectionReason: undefined } : p
+      ));
+      showToast(`"${productName}" resubmitted for approval`, 'success');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to resubmit product', 'error');
+    }
+  };
+
   const saveEdit = async () => {
     if (!editState.productId) return;
     setSavingEdit(true);
@@ -165,30 +204,24 @@ export default function VendorDashboard() {
       const product = products.find(p => p.id === editState.productId)!;
       const currentPrice = product.priceEntries[0]?.priceNgn ?? 0;
       const newPriceNum = parseFloat(editState.newPrice);
+      const newStock = editState.stockQuantity !== '' ? parseInt(editState.stockQuantity) : null;
 
-      // Update product details
+      // Single call for all non-price fields (name, description, unit, stockQuantity)
       await axios.patch(`/vendors/me/products/${editState.productId}`, {
         name: editState.name,
         description: editState.description,
         unit: editState.unit,
+        stockQuantity: newStock,
       });
 
-      // Update price if changed
+      // Separate call only if price actually changed (creates new price history entry)
       if (!isNaN(newPriceNum) && newPriceNum > 0 && newPriceNum !== Number(currentPrice)) {
         await axios.patch(`/vendors/me/products/${editState.productId}/price`, {
           priceNgn: newPriceNum
         });
       }
 
-      // Update stock if changed
-      const newStock = editState.stockQuantity ? parseInt(editState.stockQuantity) : null;
-      if (newStock !== product.stockQuantity) {
-        await axios.patch(`/vendors/me/products/${editState.productId}`, {
-          stockQuantity: newStock ?? undefined
-        });
-      }
-
-      // Refresh the product in local state
+      // Only update local state after all calls succeed
       setProducts(prev => prev.map(p => {
         if (p.id !== editState.productId) return p;
         return {
@@ -197,14 +230,15 @@ export default function VendorDashboard() {
           description: editState.description,
           unit: editState.unit,
           stockQuantity: newStock,
-          priceEntries: [{ priceNgn: newPriceNum || Number(currentPrice) }]
+          priceEntries: [{ priceNgn: !isNaN(newPriceNum) && newPriceNum > 0 ? newPriceNum : Number(currentPrice) }]
         };
       }));
 
       showToast('Product updated successfully', 'success');
       closeEdit();
-    } catch {
-      showToast('Failed to update product', 'error');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to update product', 'error');
     } finally {
       setSavingEdit(false);
     }
@@ -249,7 +283,7 @@ export default function VendorDashboard() {
         transition={{ delay: 0.05 }}
         className="flex gap-1 mb-8 bg-surface p-1 rounded-2xl w-fit border border-gray-100"
       >
-        {(['overview', 'products', 'orders'] as Tab[]).map(t => (
+        {(['overview', 'products', 'orders', 'payouts'] as Tab[]).map(t => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -391,9 +425,14 @@ export default function VendorDashboard() {
                                 </span>
                               )}
                               {isRejected && (
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700" title={p.rejectionReason || ''}>
-                                  ❌ Rejected
-                                </span>
+                                <div>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-red-50 text-red-700">
+                                    ❌ Rejected
+                                  </span>
+                                  {p.rejectionReason && (
+                                    <p className="text-[11px] text-red-500 mt-1 max-w-[160px] leading-tight">{p.rejectionReason}</p>
+                                  )}
+                                </div>
                               )}
                               {!isPending && !isRejected && (
                                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-xs font-semibold bg-emerald-50 text-emerald-700">
@@ -404,6 +443,15 @@ export default function VendorDashboard() {
                             <td className="px-6 py-4 text-muted">{p._count.orderItems}</td>
                             <td className="px-6 py-4">
                               <div className="flex items-center justify-end gap-2">
+                                {isRejected && (
+                                  <button
+                                    onClick={() => handleResubmit(p.id, p.name)}
+                                    className="px-2 py-1 rounded-lg text-xs font-bold text-amber-700 bg-amber-50 hover:bg-amber-100 transition-colors"
+                                    title="Resubmit for approval"
+                                  >
+                                    Resubmit
+                                  </button>
+                                )}
                                 <button
                                   onClick={() => openEdit(p)}
                                   className="p-1.5 rounded-lg text-muted hover:bg-blue-50 hover:text-blue-600 transition-colors"
@@ -546,7 +594,11 @@ export default function VendorDashboard() {
         {/* ── Orders ── */}
         {tab === 'orders' && (
           <motion.div key="orders" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-3">
-            {orderItems.length === 0 ? (
+            {loadingOrders ? (
+              <div className="space-y-3">
+                {[1,2,3].map(i => <div key={i} className="h-20 bg-gray-100 rounded-2xl animate-pulse" />)}
+              </div>
+            ) : orderItems.length === 0 ? (
               <div className="py-20 text-center bg-white rounded-3xl border border-gray-100">
                 <ShoppingBag size={32} className="mx-auto mb-3 text-muted opacity-40" />
                 <p className="text-muted font-medium">No orders yet</p>
@@ -617,6 +669,37 @@ export default function VendorDashboard() {
                 );
               })
             )}
+            {/* Pagination */}
+            {!loadingOrders && ordersPages > 1 && (
+              <div className="flex items-center justify-between py-2">
+                <p className="text-xs text-muted">
+                  {ordersTotal} order item{ordersTotal !== 1 ? 's' : ''} total
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    disabled={ordersPage === 1}
+                    onClick={() => loadOrders(ordersPage - 1)}
+                    className="px-3 py-1.5 text-xs font-bold border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                  >
+                    ← Prev
+                  </button>
+                  <span className="px-3 py-1.5 text-xs font-bold text-muted">{ordersPage} / {ordersPages}</span>
+                  <button
+                    disabled={ordersPage >= ordersPages}
+                    onClick={() => loadOrders(ordersPage + 1)}
+                    className="px-3 py-1.5 text-xs font-bold border border-gray-200 rounded-lg disabled:opacity-40 hover:bg-gray-50"
+                  >
+                    Next →
+                  </button>
+                </div>
+              </div>
+            )}
+          </motion.div>
+        )}
+        {/* ── Payouts ── */}
+        {tab === 'payouts' && (
+          <motion.div key="payouts" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+            <PayoutsTab />
           </motion.div>
         )}
       </AnimatePresence>

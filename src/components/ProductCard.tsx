@@ -96,6 +96,7 @@ export default function ProductCard({
             onClick={handleAddToCart}
             whileHover={{ scale: 1.08 }}
             whileTap={{ scale: 0.95 }}
+            aria-label={`Add ${name} to cart`}
             className="size-8 rounded-lg bg-primary text-white flex items-center justify-center hover:bg-primary-dark transition-colors"
           >
             <ShoppingCart size={16} />

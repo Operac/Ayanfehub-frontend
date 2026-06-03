@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
 import { Check, X, AlertCircle } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { formatCurrency } from '../lib/utils';
@@ -35,15 +36,8 @@ export default function AdminProductApprovalTab() {
   const limit = 20;
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/marketplace`, { credentials: 'include' })
-      .then(r => r.json())
-      .then(setMarkets)
-      .catch(() => {});
-
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/vendors`, { credentials: 'include' })
-      .then(r => r.json())
-      .then(setVendors)
-      .catch(() => {});
+    axios.get('/admin/markets').then(r => setMarkets(r.data)).catch(() => {});
+    axios.get('/admin/vendors').then(r => setVendors(r.data)).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -57,21 +51,10 @@ export default function AdminProductApprovalTab() {
   const fetchPendingProducts = async () => {
     setLoading(true);
     try {
-      const params = new URLSearchParams({
-        page: String(page),
-        limit: String(limit),
-        ...(filters.marketId ? { marketId: filters.marketId } : {}),
-        ...(filters.vendorId ? { vendorId: filters.vendorId } : {})
-      });
-
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/products/pending?${params}`,
-        { credentials: 'include' }
-      );
-
-      if (!response.ok) throw new Error('Failed to fetch products');
-
-      const data = await response.json();
+      const params: Record<string, string> = { page: String(page), limit: String(limit) };
+      if (filters.marketId) params.marketId = filters.marketId;
+      if (filters.vendorId) params.vendorId = filters.vendorId;
+      const { data } = await axios.get('/admin/products/pending', { params });
       setProducts(data.products);
       setTotal(data.total);
     } catch {
@@ -83,21 +66,13 @@ export default function AdminProductApprovalTab() {
 
   const handleApprove = async (productId: string) => {
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/products/${productId}/approval`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ approvalStatus: 'APPROVED' })
-        }
-      );
-      if (!response.ok) throw new Error('Failed to approve');
+      await axios.patch(`/admin/products/${productId}/approval`, { approvalStatus: 'APPROVED' });
       showToast('Product approved', 'success');
       setProducts(prev => prev.filter(p => p.id !== productId));
       setTotal(prev => prev - 1);
-    } catch {
-      showToast('Failed to approve product', 'error');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to approve product', 'error');
     }
   };
 
@@ -107,24 +82,18 @@ export default function AdminProductApprovalTab() {
       return;
     }
     try {
-      const response = await fetch(
-        `${import.meta.env.VITE_API_BASE_URL}/admin/products/${selectedProduct}/approval`,
-        {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ approvalStatus: 'REJECTED', rejectionReason })
-        }
-      );
-      if (!response.ok) throw new Error('Failed to reject');
+      await axios.patch(`/admin/products/${selectedProduct}/approval`, {
+        approvalStatus: 'REJECTED', rejectionReason
+      });
       showToast('Product rejected', 'success');
       setProducts(prev => prev.filter(p => p.id !== selectedProduct));
       setTotal(prev => prev - 1);
       setShowRejectModal(false);
       setRejectionReason('');
       setSelectedProduct(null);
-    } catch {
-      showToast('Failed to reject product', 'error');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to reject product', 'error');
     }
   };
 

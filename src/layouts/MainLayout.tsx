@@ -4,12 +4,15 @@ import { useCart } from '../context/CartContext';
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import GlobalSearch from '../components/GlobalSearch';
+import NotificationBell from '../components/NotificationBell';
 import { ShoppingCart, Menu, X, ChevronDown, Store, LayoutDashboard, LogOut, User, Package } from 'lucide-react';
 
 const NAV_ITEMS = [
   { name: 'Marketplace', path: '/marketplace' },
   { name: 'Artisans',    path: '/artisans'    },
   { name: 'Short-lets',  path: '/shortlets'   },
+  { name: 'Group Buy',   path: '/group-buy'   },
+  { name: 'Cleaning',    path: '/cleaning'    },
   { name: 'Orders',      path: '/orders'      },
 ];
 
@@ -110,6 +113,9 @@ export default function MainLayout() {
                 <GlobalSearch />
               </div>
 
+              {/* Notification Bell */}
+              <NotificationBell />
+
               {/* Cart */}
               <Link to="/cart" className="relative flex items-center justify-center size-10 rounded-xl hover:bg-surface transition-colors group">
                 <motion.div whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
@@ -135,7 +141,7 @@ export default function MainLayout() {
                 <div ref={profileRef} className="relative">
                   <motion.button
                     onClick={() => setProfileOpen(v => !v)}
-                    className="hidden sm:flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/30 hover:bg-primary-dark transition-colors"
+                    className="flex items-center gap-2 h-10 px-4 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/30 hover:bg-primary-dark transition-colors"
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.97 }}
                   >
@@ -174,7 +180,7 @@ export default function MainLayout() {
                 <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.97 }}>
                   <Link
                     to="/login"
-                    className="hidden sm:flex items-center h-10 px-5 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/30 hover:bg-primary-dark transition-colors"
+                    className="flex items-center h-10 px-5 rounded-xl bg-primary text-white text-sm font-bold shadow-md shadow-primary/30 hover:bg-primary-dark transition-colors"
                   >
                     Sign In
                   </Link>
@@ -230,10 +236,15 @@ export default function MainLayout() {
                       </Link>
                     </motion.div>
                   ))}
-                  {!user && (
-                    <Link to="/login" className="mt-2 flex items-center justify-center h-11 rounded-xl bg-primary text-white text-sm font-bold">
-                      Sign In
-                    </Link>
+                  {user && (
+                    <>
+                      <div className="mt-1 h-px bg-gray-100" />
+                      <Link to="/profile" className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted hover:bg-surface hover:text-ink transition-colors"><User size={14} /> My Profile</Link>
+                      {user.role === 'VENDOR'  && <Link to="/vendor"            className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted hover:bg-surface hover:text-ink transition-colors"><Store size={14} /> Vendor Dashboard</Link>}
+                      {user.role === 'ARTISAN' && <Link to="/artisan-dashboard" className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted hover:bg-surface hover:text-ink transition-colors"><LayoutDashboard size={14} /> Artisan Dashboard</Link>}
+                      {user.role === 'ADMIN'   && <Link to="/admin"             className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted hover:bg-surface hover:text-ink transition-colors"><LayoutDashboard size={14} /> Admin Dashboard</Link>}
+                      <button onClick={() => { logout(); setMenuOpen(false); }} className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-red-600 hover:bg-red-50 transition-colors w-full text-left"><LogOut size={14} /> Sign Out</button>
+                    </>
                   )}
                 </div>
               </motion.div>
@@ -281,10 +292,21 @@ export default function MainLayout() {
                 Connecting you to the heartbeat of Lagos markets. Fresh, authentic, and delivered with care.
               </p>
               <div className="flex gap-3 mt-6">
-                {['Twitter', 'Instagram', 'Facebook'].map(s => (
-                  <div key={s} className="size-9 rounded-xl glass-dark flex items-center justify-center cursor-pointer hover:border-primary/40 transition-colors">
-                    <span className="text-white/40 text-xs font-bold">{s[0]}</span>
-                  </div>
+                {[
+                  { label: 'Twitter',   href: 'https://twitter.com'   },
+                  { label: 'Instagram', href: 'https://instagram.com' },
+                  { label: 'Facebook',  href: 'https://facebook.com'  },
+                ].map(s => (
+                  <a
+                    key={s.label}
+                    href={s.href}
+                    aria-label={s.label}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="size-9 rounded-xl glass-dark flex items-center justify-center hover:border-primary/40 transition-colors"
+                  >
+                    <span className="text-white/40 text-xs font-bold">{s.label[0]}</span>
+                  </a>
                 ))}
               </div>
             </div>
@@ -294,16 +316,18 @@ export default function MainLayout() {
               { label: 'Marketplace',     href: '/marketplace' },
               { label: 'Artisan Booking', href: '/artisans'    },
               { label: 'Short-let Stays', href: '/shortlets'   },
+              { label: 'Group Buy',       href: '/group-buy'   },
+              { label: 'Cleaning Services', href: '/cleaning'  },
             ]} />
             <FooterCol title="Company" links={[
-              { label: 'About Us',         href: '#' },
-              { label: 'Become a Vendor',  href: '#' },
-              { label: 'Partner with Us',  href: '#' },
+              { label: 'About Us',         href: '/'           },
+              { label: 'Become a Vendor',  href: '/marketplace' },
+              { label: 'Partner with Us',  href: '/'           },
             ]} />
             <FooterCol title="Support" links={[
-              { label: 'Help Center',    href: '#' },
-              { label: 'Delivery Areas', href: '#' },
-              { label: 'Terms of Use',   href: '#' },
+              { label: 'Help Center',    href: '/orders'      },
+              { label: 'Delivery Areas', href: '/marketplace' },
+              { label: 'Terms of Use',   href: '/'            },
             ]} />
           </div>
 

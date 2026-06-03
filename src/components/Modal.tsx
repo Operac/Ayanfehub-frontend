@@ -36,6 +36,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
       className="fixed inset-0 z-50 flex items-center justify-center p-4"
       role="dialog"
       aria-modal="true"
+      aria-labelledby={title ? 'modal-title' : undefined}
     >
       {/* Backdrop */}
       <div
@@ -52,7 +53,7 @@ export default function Modal({ open, onClose, title, children, size = 'md' }: M
         {/* Header */}
         {title && (
           <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900">{title}</h2>
+            <h2 id="modal-title" className="text-lg font-bold text-gray-900">{title}</h2>
             <button
               onClick={onClose}
               className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors"

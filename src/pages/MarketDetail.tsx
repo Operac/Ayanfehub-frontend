@@ -43,6 +43,7 @@ export default function MarketDetail() {
   const [market, setMarket] = useState<Market | null>(null);
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(false);
   const [activeCategory, setActiveCategory] = useState('All Items');
   const [showReviews, setShowReviews] = useState(false);
 
@@ -52,8 +53,10 @@ export default function MarketDetail() {
         const { data } = await axios.get(`/markets/${id}/items`);
         setMarket(data.market);
         setItems(data.items);
+        setFetchError(false);
       } catch (error) {
         console.error('Failed to fetch details', error);
+        setFetchError(true);
       } finally {
         setLoading(false);
       }
@@ -75,6 +78,20 @@ export default function MarketDetail() {
         <div className="size-12 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         <p className="text-[#5e8d88] font-medium">Loading market details...</p>
       </div>
+    </div>
+  );
+
+  if (fetchError) return (
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background-light gap-4">
+      <h2 className="text-2xl font-bold text-[#101818]">Failed to load market</h2>
+      <p className="text-[#5e8d88]">Something went wrong. Please try again.</p>
+      <button
+        onClick={() => { setFetchError(false); setLoading(true); if (id) { axios.get(`/markets/${id}/items`).then(({ data }) => { setMarket(data.market); setItems(data.items); }).catch(() => setFetchError(true)).finally(() => setLoading(false)); } }}
+        className="px-6 py-2.5 bg-primary text-white rounded-xl font-bold hover:bg-primary/90 transition-colors"
+      >
+        Retry
+      </button>
+      <Link to="/marketplace" className="text-primary hover:underline font-bold">Return to Marketplace</Link>
     </div>
   );
 
@@ -128,11 +145,11 @@ export default function MarketDetail() {
       </div>
 
       {/* Reviews (collapsible) */}
-      {showReviews && (
+      {showReviews && items.length > 0 && (
         <div className="px-4 py-4">
           <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
             <h3 className="font-bold text-gray-900 mb-4 text-lg">Customer Reviews</h3>
-            <ReviewSection vendorId={items[0]?.vendorId} />
+            <ReviewSection vendorId={items[0].vendorId} />
           </div>
         </div>
       )}

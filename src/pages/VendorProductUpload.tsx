@@ -11,6 +11,7 @@ export default function VendorProductUpload() {
   const { showToast } = useToast();
 
   const [categories, setCategories] = useState<Category[]>([]);
+  const [categoryError, setCategoryError] = useState(false);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
@@ -26,7 +27,7 @@ export default function VendorProductUpload() {
     fetch(`${import.meta.env.VITE_API_BASE_URL}/marketplace/categories`)
       .then(r => r.json())
       .then(setCategories)
-      .catch(() => {});
+      .catch(() => setCategoryError(true));
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -127,12 +128,18 @@ export default function VendorProductUpload() {
                 name="categoryId"
                 value={formData.categoryId}
                 onChange={handleChange}
-                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
+                disabled={categoryError}
+                className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary disabled:bg-gray-50 disabled:text-gray-400"
               >
-                <option value="">Select category</option>
-                {categories.map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
+                {categoryError
+                  ? <option>Failed to load categories</option>
+                  : <>
+                      <option value="">Select category</option>
+                      {categories.map(c => (
+                        <option key={c.id} value={c.id}>{c.name}</option>
+                      ))}
+                    </>
+                }
               </select>
             </div>
           </div>
@@ -177,6 +184,7 @@ export default function VendorProductUpload() {
               placeholder="https://example.com/image.jpg"
               className="w-full px-4 py-2.5 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary"
             />
+            <p className="mt-1.5 text-xs text-muted">Paste a public image link (e.g. from Cloudinary, Imgur, or your website). The image must be publicly accessible.</p>
             {formData.imageUrl && (
               <div className="mt-3 w-32 h-32 rounded-xl overflow-hidden border border-gray-100">
                 <img
