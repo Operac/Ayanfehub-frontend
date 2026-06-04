@@ -55,6 +55,8 @@ const About               = lazy(() => import('./pages/About'));
 const Partner             = lazy(() => import('./pages/Partner'));
 const Terms               = lazy(() => import('./pages/Terms'));
 const BecomeVendor        = lazy(() => import('./pages/BecomeVendor'));
+const HelpCenter          = lazy(() => import('./pages/HelpCenter'));
+const DeliveryAreas       = lazy(() => import('./pages/DeliveryAreas'));
 
 function PageLoader() {
   return (
@@ -123,6 +125,8 @@ function App() {
                     <Route path="/partner" element={<Partner />} />
                     <Route path="/terms" element={<Terms />} />
                     <Route path="/become-vendor" element={<RequireAuth><BecomeVendor /></RequireAuth>} />
+                    <Route path="/help" element={<HelpCenter />} />
+                    <Route path="/delivery-areas" element={<DeliveryAreas />} />
                   </Route>
                 </Routes>
               </Suspense>

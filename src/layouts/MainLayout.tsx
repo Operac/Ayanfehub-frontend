@@ -325,8 +325,8 @@ export default function MainLayout() {
               { label: 'Partner with Us',  href: '/partner'    },
             ]} />
             <FooterCol title="Support" links={[
-              { label: 'Help Center',    href: '/orders'      },
-              { label: 'Delivery Areas', href: '/marketplace' },
+              { label: 'Help Center',    href: '/help'        },
+              { label: 'Delivery Areas', href: '/delivery-areas' },
               { label: 'Terms of Use',   href: '/terms'       },
             ]} />
           </div>

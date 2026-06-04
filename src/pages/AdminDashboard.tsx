@@ -4,7 +4,7 @@ import { formatCurrency, cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus, ClipboardList, Store, Clock, MapPin, Truck, Settings, Sparkles, Loader2 } from 'lucide-react';
+import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus, ClipboardList, Store, Clock, MapPin, Truck, Settings, Sparkles, Loader2, MessageSquare } from 'lucide-react';
 import AdminProductApprovalTab from './AdminProductApprovalTab';
 import AdminSettingsTab from './AdminSettingsTab';
 import AdminDeliveryZonesTab from './AdminDeliveryZonesTab';
@@ -75,7 +75,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED:         'text-ink/60 bg-surface',
 };
 
-type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals' | 'markets' | 'zones' | 'rates' | 'settings' | 'group-buy' | 'disputes-payouts' | 'cleaning' | 'partners';
+type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals' | 'markets' | 'zones' | 'rates' | 'settings' | 'group-buy' | 'disputes-payouts' | 'cleaning' | 'partners' | 'support';
 
 interface RunDay {
   id?: string;
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
-  const validTabs: Tab[] = ['reports','orders','vendors','promos','approvals','markets','zones','rates','settings','group-buy','disputes-payouts','cleaning','partners'];
+  const validTabs: Tab[] = ['reports','orders','vendors','promos','approvals','markets','zones','rates','settings','group-buy','disputes-payouts','cleaning','partners','support'];
   const [tab, setTabState] = useState<Tab>(tabParam && validTabs.includes(tabParam) ? tabParam : 'reports');
 
   const setTab = (t: Tab) => {
@@ -115,6 +115,9 @@ export default function AdminDashboard() {
   const [partnerApps, setPartnerApps] = useState<any[]>([]);
   const [loadingPartners, setLoadingPartners] = useState(false);
   const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
+  const [supportMsgs, setSupportMsgs] = useState<any[]>([]);
+  const [loadingSupport, setLoadingSupport] = useState(false);
+  const [resolvingSupport, setResolvingSupport] = useState<string | null>(null);
   const [editingMarket, setEditingMarket] = useState<MarketWithRunDays | null>(null);
   const [savingMarket, setSavingMarket] = useState(false);
   const [showAddMarket, setShowAddMarket] = useState(false);
@@ -146,6 +149,7 @@ export default function AdminDashboard() {
     if (tab === 'promos' && promos.length === 0) loadPromos();
     if (tab === 'markets' && markets.length === 0) loadMarkets();
     if (tab === 'partners' && partnerApps.length === 0) loadPartnerApps();
+    if (tab === 'support' && supportMsgs.length === 0) loadSupportMessages();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -200,6 +204,31 @@ export default function AdminDashboard() {
       showToast('Failed to update partnership application status', 'error');
     } finally {
       setUpdatingPartner(null);
+    }
+  };
+
+  const loadSupportMessages = async () => {
+    setLoadingSupport(true);
+    try {
+      const { data } = await axios.get('/support/admin');
+      setSupportMsgs(data);
+    } catch {
+      showToast('Failed to load support messages', 'error');
+    } finally {
+      setLoadingSupport(false);
+    }
+  };
+
+  const handleResolveSupportMessage = async (id: string) => {
+    setResolvingSupport(id);
+    try {
+      await axios.patch(`/support/admin/${id}/resolve`);
+      setSupportMsgs(prev => prev.map(m => m.id === id ? { ...m, status: 'RESOLVED' } : m));
+      showToast('Support message resolved', 'success');
+    } catch {
+      showToast('Failed to resolve support message', 'error');
+    } finally {
+      setResolvingSupport(null);
     }
   };
 
@@ -432,6 +461,7 @@ export default function AdminDashboard() {
           { key: 'disputes-payouts', label: 'Disputes & Payouts', icon: <ClipboardList size={14} /> },
           { key: 'cleaning', label: 'Cleaning', icon: <Sparkles size={14} /> },
           { key: 'partners', label: 'Partners', icon: <Users size={14} /> },
+          { key: 'support', label: 'Messages', icon: <MessageSquare size={14} /> },
           { key: 'settings', label: 'Settings', icon: <Settings size={14} /> },
         ] as { key: Tab; label: string; icon?: React.ReactNode }[]).map(({ key, label, icon }) => (
           <button key={key} onClick={() => setTab(key)}
@@ -987,6 +1017,71 @@ export default function AdminDashboard() {
                   ))}
                   {partnerApps.length === 0 && (
                     <tr><td colSpan={5} className="px-5 py-12 text-center text-gray-400">No partnership applications found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {tab === 'support' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Support Inquiries</h2>
+            <p className="text-sm text-gray-500 mt-0.5">Review and resolve customer questions and feedback</p>
+          </div>
+          {loadingSupport ? (
+            <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-primary" size={24} /></div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Contact Details</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Subject</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Message</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Date</th>
+                    <th className="px-5 py-3 text-right font-medium text-gray-500">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {supportMsgs.map((msg: any) => (
+                    <tr key={msg.id} className="hover:bg-gray-50 align-top">
+                      <td className="px-5 py-3 space-y-1">
+                        <p className="font-semibold text-gray-900">{msg.fullName}</p>
+                        <p className="text-xs text-gray-500">{msg.email}</p>
+                        {msg.phone && <p className="text-xs text-gray-500">{msg.phone}</p>}
+                        {msg.userId && <span className="inline-flex px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-600">Registered</span>}
+                      </td>
+                      <td className="px-5 py-3 font-semibold text-gray-900">
+                        {msg.subject}
+                      </td>
+                      <td className="px-5 py-3 text-xs text-gray-600 max-w-sm whitespace-pre-wrap leading-relaxed">
+                        {msg.message}
+                      </td>
+                      <td className="px-5 py-3 text-gray-400 text-xs whitespace-nowrap">
+                        {new Date(msg.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        {msg.status === 'OPEN' ? (
+                          <button
+                            disabled={resolvingSupport === msg.id}
+                            onClick={() => handleResolveSupportMessage(msg.id)}
+                            className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition disabled:opacity-50"
+                          >
+                            {resolvingSupport === msg.id ? 'Resolving...' : 'Mark Resolved'}
+                          </button>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-green-50 text-green-700">
+                            Resolved
+                          </span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                  {supportMsgs.length === 0 && (
+                    <tr><td colSpan={5} className="px-5 py-12 text-center text-gray-400">No support inquiries found</td></tr>
                   )}
                 </tbody>
               </table>

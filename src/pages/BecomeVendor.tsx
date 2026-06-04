@@ -25,6 +25,7 @@ export default function BecomeVendor() {
   const [contactName, setContactName] = useState(user?.fullName || '');
   const [phone, setPhone] = useState(user?.phone || '');
   const [marketId, setMarketId] = useState('');
+  const [customMarketName, setCustomMarketName] = useState('');
   const [stallReference, setStallReference] = useState('');
 
   // Fetch markets for selection
@@ -56,7 +57,11 @@ export default function BecomeVendor() {
       navigate('/login', { state: { from: '/become-vendor' } });
       return;
     }
-    if (!businessName.trim() || !marketId || !contactName.trim() || !phone.trim()) {
+
+    const selectedMarketId = marketId === 'CUSTOM' ? undefined : marketId;
+    const finalCustomMarketName = marketId === 'CUSTOM' ? customMarketName.trim() : undefined;
+
+    if (!businessName.trim() || (!selectedMarketId && !finalCustomMarketName) || !contactName.trim() || !phone.trim()) {
       showToast('Please fill in all required fields.', 'warning');
       return;
     }
@@ -65,7 +70,8 @@ export default function BecomeVendor() {
     try {
       await axios.post('/vendors/apply', {
         businessName: businessName.trim(),
-        marketId,
+        marketId: selectedMarketId,
+        customMarketName: finalCustomMarketName,
         contactName: contactName.trim(),
         phone: phone.trim(),
         stallReference: stallReference.trim() || undefined
@@ -216,25 +222,49 @@ export default function BecomeVendor() {
                   </div>
 
                   <div>
-                    <label className="block font-bold text-muted uppercase tracking-wide mb-1.5">Lagos Market Location <span className="text-red-500">*</span></label>
-                    <div className="relative">
+                    <label className="block font-bold text-muted uppercase tracking-wide mb-1.5">Market Location <span className="text-red-500">*</span></label>
+                    <div className="relative mb-3">
                       <MapPin size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
                       <select
                         required
                         value={marketId}
-                        onChange={e => setMarketId(e.target.value)}
+                        onChange={e => {
+                          setMarketId(e.target.value);
+                          if (e.target.value !== 'CUSTOM') {
+                            setCustomMarketName('');
+                          }
+                        }}
                         className="w-full pl-8 pr-3 py-2.5 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all bg-white text-xs"
                       >
                         <option value="">Select your market...</option>
                         {loadingMarkets ? (
-                          <option disabled>Loading markets...</option>
+                           <option disabled>Loading markets...</option>
                         ) : (
                           markets?.map((m: Market) => (
                             <option key={m.id} value={m.id}>{m.name}</option>
                           ))
                         )}
+                        <option value="CUSTOM">+ Add new market location...</option>
                       </select>
                     </div>
+
+                    {marketId === 'CUSTOM' && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="space-y-1 text-xs"
+                      >
+                        <label className="block font-bold text-muted uppercase tracking-wide mb-1.5">Specify Market Name <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          required
+                          value={customMarketName}
+                          onChange={e => setCustomMarketName(e.target.value)}
+                          placeholder="e.g. Alaba International Market"
+                          className="w-full px-3.5 py-2.5 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all text-xs"
+                        />
+                      </motion.div>
+                    )}
                   </div>
 
                   <div>
