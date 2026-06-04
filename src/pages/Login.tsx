@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, Lock, Phone, Eye, EyeOff, ArrowRight, AlertCircle } from 'lucide-react';
 
@@ -14,6 +14,8 @@ export default function Login() {
   const [loading, setLoading]     = useState(false);
   const { login }  = useAuth();
   const navigate   = useNavigate();
+  const [searchParams] = useSearchParams();
+  const nextPath = searchParams.get('next') || '/';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +26,7 @@ export default function Login() {
         ? { phone: identifier, password }
         : { email: identifier, password };
       await login(creds);
-      navigate('/');
+      navigate(nextPath, { replace: true });
     } catch (err) {
       const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
       setError(msg || 'Login failed. Please check your credentials.');
