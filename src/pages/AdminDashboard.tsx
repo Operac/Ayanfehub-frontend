@@ -818,6 +818,7 @@ export default function AdminDashboard() {
                   <th className="px-5 py-3 text-left font-medium text-gray-500">Orders</th>
                   <th className="px-5 py-3 text-left font-medium text-gray-500">Rating</th>
                   <th className="px-5 py-3 text-right font-medium text-gray-500">Verification</th>
+                  <th className="px-5 py-3 text-right font-medium text-gray-500">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
@@ -844,10 +845,18 @@ export default function AdminDashboard() {
                         <option value="SUSPENDED">SUSPENDED</option>
                       </select>
                     </td>
+                    <td className="px-5 py-3 text-right">
+                      <Link
+                        to={`/admin/products/create?vendorId=${v.id}`}
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-bold rounded-lg transition-all"
+                      >
+                        <Plus size={12} /> Add Product
+                      </Link>
+                    </td>
                   </tr>
                 ))}
                 {vendors.length === 0 && (
-                  <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400">No vendors found</td></tr>
+                  <tr><td colSpan={7} className="px-5 py-12 text-center text-gray-400">No vendors found</td></tr>
                 )}
               </tbody>
             </table>

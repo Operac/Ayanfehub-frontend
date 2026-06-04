@@ -67,7 +67,6 @@ function FlutterwaveModal({ config, onSuccess, onClose }: {
   onClose: () => void;
 }) {
   // flutterwave-react-v3 lacks TypeScript declarations; cast is unavoidable here
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const handlePayment = useFlutterwave(config as any);
 
   useEffect(() => {
@@ -147,7 +146,7 @@ export default function CartPage() {
         setAddresses(r.data);
         const def = r.data.find((a: Address) => a.isDefault);
         if (def) setSelectedAddressId(def.id);
-      }).catch(() => {});
+      }).catch(() => showToast('Could not load saved addresses', 'error'));
     }
   }, [user]);
 

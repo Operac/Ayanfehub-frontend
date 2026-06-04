@@ -208,6 +208,7 @@ function ParticipantsModal({
   const { showToast } = useToast();
   const queryClient = useQueryClient();
   const [releasing, setReleasing] = useState<string | null>(null);
+  const [confirmSlotId, setConfirmSlotId] = useState<string | null>(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ['group-buy-participants', eventId],
@@ -215,8 +216,8 @@ function ParticipantsModal({
   });
 
   const handleRelease = async (slotId: string) => {
-    if (!confirm('Release this participant\'s slot? They will be notified and refunded if paid.')) return;
     setReleasing(slotId);
+    setConfirmSlotId(null);
     try {
       await axios.patch(`/admin/group-buy/${eventId}/slots/${slotId}/release`, {}, { withCredentials: true });
       showToast('Slot released', 'success');
@@ -284,14 +285,32 @@ function ParticipantsModal({
                   </div>
                   <span className={cn('px-2.5 py-1 rounded-full text-xs font-bold', ssc.color)}>{ssc.label}</span>
                   {canRelease && (
-                    <button
-                      onClick={() => handleRelease(p.slotId)}
-                      disabled={releasing === p.slotId}
-                      className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
-                      title="Release slot"
-                    >
-                      <Ban size={14} />
-                    </button>
+                    confirmSlotId === p.slotId ? (
+                      <div className="flex items-center gap-1">
+                        <button
+                          onClick={() => handleRelease(p.slotId)}
+                          disabled={releasing === p.slotId}
+                          className="px-2 py-1 text-xs font-bold text-white bg-red-500 hover:bg-red-600 rounded-lg disabled:opacity-50"
+                        >
+                          {releasing === p.slotId ? '…' : 'Yes'}
+                        </button>
+                        <button
+                          onClick={() => setConfirmSlotId(null)}
+                          className="px-2 py-1 text-xs font-semibold text-muted hover:text-ink rounded-lg hover:bg-gray-100"
+                        >
+                          No
+                        </button>
+                      </div>
+                    ) : (
+                      <button
+                        onClick={() => setConfirmSlotId(p.slotId)}
+                        disabled={releasing === p.slotId}
+                        className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-40"
+                        title="Release slot"
+                      >
+                        <Ban size={14} />
+                      </button>
+                    )
                   )}
                 </div>
               </div>

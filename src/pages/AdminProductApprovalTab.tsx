@@ -36,8 +36,8 @@ export default function AdminProductApprovalTab() {
   const limit = 20;
 
   useEffect(() => {
-    axios.get('/admin/markets').then(r => setMarkets(r.data)).catch(() => {});
-    axios.get('/admin/vendors').then(r => setVendors(r.data)).catch(() => {});
+    axios.get('/admin/markets').then(r => setMarkets(r.data)).catch(() => showToast('Failed to load market filters', 'error'));
+    axios.get('/admin/vendors').then(r => setVendors(r.data)).catch(() => showToast('Failed to load vendor filters', 'error'));
   }, []);
 
   useEffect(() => {

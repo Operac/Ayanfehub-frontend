@@ -6,13 +6,11 @@ export default function DeliveryAreas() {
     {
       name: 'Lagos Metropolitan Area',
       desc: 'All major parts of Lagos State including Mainland, Island, Lekki, Ikeja, Surulere, Ikorodu, Epe, and Badagry.',
-      time: 'Same-day or next-day scheduled consolidated shipping.',
       rates: 'Starts from ₦1,500 (based on delivery zone distance).'
     },
     {
       name: 'Mowe-Ibafo Axis',
       desc: 'Including Mowe, Ibafo, Magboro, and neighboring communities along the Lagos-Ibadan Expressway.',
-      time: 'Next-day scheduled consolidated shipping.',
       rates: 'Starts from ₦2,500 (special outbound route pricing).'
     }
   ];
@@ -82,10 +80,6 @@ export default function DeliveryAreas() {
                 <div className="h-px bg-gray-100" />
 
                 <div className="space-y-3 text-xs">
-                  <div className="flex gap-2">
-                    <span className="font-bold text-muted w-24 shrink-0">Schedule:</span>
-                    <span className="text-ink/80">{r.time}</span>
-                  </div>
                   <div className="flex gap-2">
                     <span className="font-bold text-muted w-24 shrink-0">Delivery Fee:</span>
                     <span className="text-primary font-bold">{r.rates}</span>

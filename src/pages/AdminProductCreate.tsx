@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '../context/ToastContext';
+import axios from 'axios';
 
 interface Vendor { id: string; businessName: string; market: { name: string } }
 interface Category { id: string; name: string }
@@ -9,13 +10,14 @@ const UNITS = ['kg', 'piece', 'dozen', 'bag (25kg)', 'bag (50kg)', 'crate', 'car
 
 export default function AdminProductCreate() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { showToast } = useToast();
 
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
-    vendorId: '',
+    vendorId: searchParams.get('vendorId') || '',
     name: '',
     description: '',
     unit: 'kg',
@@ -26,15 +28,13 @@ export default function AdminProductCreate() {
   });
 
   useEffect(() => {
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/vendors`, { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => setVendors(data))
+    axios.get('/admin/vendors', { withCredentials: true })
+      .then(r => setVendors(r.data))
       .catch(() => showToast('Failed to load vendors', 'error'));
 
-    fetch(`${import.meta.env.VITE_API_BASE_URL}/marketplace/categories`)
-      .then(r => r.json())
-      .then(setCategories)
-      .catch(() => {});
+    axios.get('/markets/categories')
+      .then(r => setCategories(r.data))
+      .catch(() => showToast('Failed to load categories', 'error'));
   }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
@@ -51,30 +51,21 @@ export default function AdminProductCreate() {
 
     setLoading(true);
     try {
-      const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/admin/vendors/${formData.vendorId}/products`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({
-          name: formData.name,
-          description: formData.description || undefined,
-          unit: formData.unit,
-          categoryId: formData.categoryId || undefined,
-          priceNgn: parseFloat(formData.priceNgn),
-          stockQuantity: formData.stockQuantity ? parseInt(formData.stockQuantity) : undefined,
-          approvalStatus: formData.approvalStatus
-        })
-      });
-
-      if (!res.ok) {
-        const err = await res.json();
-        throw new Error(err.message || 'Failed to create product');
-      }
+      await axios.post(`/admin/vendors/${formData.vendorId}/products`, {
+        name: formData.name,
+        description: formData.description || undefined,
+        unit: formData.unit,
+        categoryId: formData.categoryId || undefined,
+        priceNgn: parseFloat(formData.priceNgn),
+        stockQuantity: formData.stockQuantity ? parseInt(formData.stockQuantity) : undefined,
+        approvalStatus: formData.approvalStatus,
+      }, { withCredentials: true });
 
       showToast('Product created successfully', 'success');
       setTimeout(() => navigate('/admin'), 1500);
-    } catch (error) {
-      showToast(error instanceof Error ? error.message : 'Failed to create product', 'error');
+    } catch (err) {
+      const msg = axios.isAxiosError(err) ? err.response?.data?.message : undefined;
+      showToast(msg || 'Failed to create product', 'error');
     } finally {
       setLoading(false);
     }

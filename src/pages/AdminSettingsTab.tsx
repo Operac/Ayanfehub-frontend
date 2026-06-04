@@ -14,7 +14,7 @@ export default function AdminSettingsTab() {
   useEffect(() => {
     axios.get('/admin/settings', { withCredentials: true })
       .then(r => setSettings(prev => ({ ...prev, ...r.data })))
-      .catch(() => {});
+      .catch(() => showToast('Failed to load settings', 'error'));
   }, []);
 
   const save = async () => {

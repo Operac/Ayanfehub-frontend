@@ -695,7 +695,7 @@ function HomePricingEditor() {
       showToast('HOME pricing updated!', 'success');
       queryClient.invalidateQueries({ queryKey: ['admin-cleaning-pricing'] });
       setDraft(null);
-    } catch (err) {
+    } catch {
       showToast('Failed to save pricing', 'error');
     } finally { setSaving(false); }
   };
