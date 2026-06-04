@@ -27,19 +27,19 @@ const VALUES = [
 
 const TIMELINE = [
   {
-    year: '2024',
-    title: 'The Seed is Sown',
-    desc: 'Ayanfe was founded with a simple goal: to make shopping from chaotic Lagos markets as easy as clicking a button.'
-  },
-  {
     year: '2025',
-    title: 'Expanding Horizons',
-    desc: 'Expanded our operations to cover 20+ major Lagos markets, onboarding over 500 verified vendors and logistics agents.'
+    title: 'Seed of the Idea',
+    desc: 'The seed of the idea came in 2025, conceptualized to bridge the gap between busy households and local markets.'
   },
   {
     year: '2026',
-    title: 'Ayanfe Hub Era',
-    desc: 'Transitioned to a multi-service platform, adding vetted Artisan bookings, serviced Short-lets, Group Buying, and professional Cleaning.'
+    title: 'Personal Shopping Launch',
+    desc: 'We launched small-sized personal shopping in 2026 to establish trusted quality controls and sourcing networks.'
+  },
+  {
+    year: '2026+',
+    title: 'Active Expansion',
+    desc: 'Now we are expanding our platform to support group buys, artisan bookings, serviced shortlets, and cleaning services.'
   }
 ];
 
@@ -142,7 +142,7 @@ export default function About() {
               </span>
               <h2 className="text-2xl md:text-3xl font-black text-ink tracking-tight">How we evolved</h2>
               <p className="text-sm text-muted leading-relaxed">
-                What started as a response to market logistical challenges in Lagos has grown into a comprehensive service directory connecting households with quality care.
+                The seed of the idea came in 2025, and we launched small-sized personal shopping in 2026. Now, we are expanding! Today, we work with just 100+ vetted vendors and have completed over 1,000+ successful deliveries, bringing authentic market products directly to you.
               </p>
             </div>
             <div className="lg:col-span-2 space-y-8 relative before:absolute before:left-6 before:top-4 before:bottom-4 before:w-0.5 before:bg-gray-100">
@@ -182,11 +182,11 @@ export default function About() {
               <p className="text-xs text-white/60 uppercase tracking-wider font-semibold mt-1">Markets Scored</p>
             </div>
             <div className="pt-6 md:pt-0">
-              <p className="text-3xl md:text-4xl font-black">500+</p>
+              <p className="text-3xl md:text-4xl font-black">100+</p>
               <p className="text-xs text-white/60 uppercase tracking-wider font-semibold mt-1">Vetted Vendors</p>
             </div>
             <div className="pt-6 md:pt-0">
-              <p className="text-3xl md:text-4xl font-black">10k+</p>
+              <p className="text-3xl md:text-4xl font-black">1,000+</p>
               <p className="text-xs text-white/60 uppercase tracking-wider font-semibold mt-1">Successful Deliveries</p>
             </div>
             <div className="pt-6 md:pt-0">

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { MapPin, Truck, Clock, ShieldCheck } from 'lucide-react';
+import { MapPin, Truck, Clock, ShieldCheck, Check, AlertCircle } from 'lucide-react';
 
 export default function DeliveryAreas() {
   const regions = [
@@ -93,6 +93,48 @@ export default function DeliveryAreas() {
                 </div>
               </motion.div>
             ))}
+          </div>
+        </div>
+
+        {/* Sourcing & Shipping Schedule Policy */}
+        <div className="bg-white border border-gray-100 rounded-3xl p-6 md:p-8 shadow-sm space-y-6">
+          <div className="space-y-1">
+            <h3 className="text-base font-black text-ink flex items-center gap-2">
+              <Clock className="text-primary" size={18} /> Sourcing & Sourcing Consolidated Policy
+            </h3>
+            <p className="text-xs text-muted leading-relaxed">
+              To support our weekly consolidated purchases and preserve stable pricing with our market vendors, please review our logistics guidelines:
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 text-xs text-ink/80 leading-relaxed">
+            <div className="space-y-2.5 p-5 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <h4 className="font-bold text-primary flex items-center gap-1.5">
+                <Check size={14} className="shrink-0" /> Market Assignment & Cut-off Times
+              </h4>
+              <p>
+                Each market location has an assigned delivery date and a strict payment cut-off time. We do not accept payments after the cut-off time because market prices change rapidly, and we need to group purchases together to coordinate with our vetted vendors.
+              </p>
+            </div>
+            <div className="space-y-2.5 p-5 rounded-2xl bg-gray-50/50 border border-gray-100">
+              <h4 className="font-bold text-primary flex items-center gap-1.5">
+                <Check size={14} className="shrink-0" /> Multi-Market Consolidated Delivery
+              </h4>
+              <p>
+                If you purchase items from different markets in a single order, you will not receive multiple shipments on individual market dates. Instead, your order will be delivered on a single consolidated delivery date. This ensures you pay only a single delivery fee. Your consolidated delivery date will be calculated and provided to you after your purchase is confirmed.
+              </p>
+            </div>
+          </div>
+
+          {/* Other Services Policy Banner */}
+          <div className="p-4 bg-primary/5 border border-primary/10 rounded-2xl flex gap-3 text-xs leading-relaxed text-ink/85">
+            <AlertCircle size={16} className="text-primary shrink-0 mt-0.5" />
+            <div>
+              <span className="font-bold text-ink block mb-0.5">Shortlet & Cleaning Services Payment Policy</span>
+              <p>
+                For our serviced apartments (shortlets) and professional cleaning bookings, payments are not processed immediately. Payment can only be made after our team reviews your request, confirms availability/details, and updates your quote status.
+              </p>
+            </div>
           </div>
         </div>
 

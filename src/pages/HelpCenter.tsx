@@ -32,8 +32,16 @@ export default function HelpCenter() {
       a: 'We consolidate orders from various local Lagos markets weekly. By grouping purchases, we source fresh products in bulk directly from vendors, reducing shipping costs and passing those savings to you.'
     },
     {
-      q: 'What is the "Group Buy" feature?',
-      a: 'Group Buy lets multiple customers split the cost of bulk items (like a whole bag of rice or a basket of tomatoes). Once all slots for the item are filled and paid, the item is purchased and distributed to each participant.'
+      q: 'What happens if I buy from different markets?',
+      a: 'If you are buying from different markets, you do not get multiple deliveries. Instead, your items are shipped on a single consolidated date so you pay only one delivery fee instead of many. Your consolidated delivery date will be calculated and given to you after purchase.'
+    },
+    {
+      q: 'What are the market cutoff times for grocery delivery?',
+      a: 'Each market has an assigned delivery date and a strict cut-off time to pay. We do not accept payments after the cut-off time due to market price fluctuations and to ensure we can coordinate our consolidated purchases on time.'
+    },
+    {
+      q: 'When do I pay for shortlet and cleaning bookings?',
+      a: 'For other services like shortlets and cleaning, payment can only be made after booking confirmation. Once our team reviews and confirms availability or details, you will be notified to proceed with payment.'
     },
     {
       q: 'How do I book cleaning services?',
