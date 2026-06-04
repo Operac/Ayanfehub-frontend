@@ -321,7 +321,7 @@ export default function MainLayout() {
             ]} />
             <FooterCol title="Company" links={[
               { label: 'About Us',         href: '/about'      },
-              { label: 'Become a Vendor',  href: '/marketplace' },
+              { label: 'Become a Vendor',  href: '/become-vendor' },
               { label: 'Partner with Us',  href: '/partner'    },
             ]} />
             <FooterCol title="Support" links={[

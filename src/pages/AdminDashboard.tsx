@@ -4,7 +4,7 @@ import { formatCurrency, cn } from '../lib/utils';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
-import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus, ClipboardList, Store, Clock, MapPin, Truck, Settings, Sparkles } from 'lucide-react';
+import { TrendingUp, Package, Users, ShoppingBag, ChevronDown, Download, Tag, ToggleLeft, ToggleRight, Plus, ClipboardList, Store, Clock, MapPin, Truck, Settings, Sparkles, Loader2 } from 'lucide-react';
 import AdminProductApprovalTab from './AdminProductApprovalTab';
 import AdminSettingsTab from './AdminSettingsTab';
 import AdminDeliveryZonesTab from './AdminDeliveryZonesTab';
@@ -75,7 +75,7 @@ const STATUS_COLORS: Record<string, string> = {
   CANCELLED:         'text-ink/60 bg-surface',
 };
 
-type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals' | 'markets' | 'zones' | 'rates' | 'settings' | 'group-buy' | 'disputes-payouts' | 'cleaning';
+type Tab = 'reports' | 'orders' | 'vendors' | 'promos' | 'approvals' | 'markets' | 'zones' | 'rates' | 'settings' | 'group-buy' | 'disputes-payouts' | 'cleaning' | 'partners';
 
 interface RunDay {
   id?: string;
@@ -99,7 +99,7 @@ export default function AdminDashboard() {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const tabParam = searchParams.get('tab') as Tab | null;
-  const validTabs: Tab[] = ['reports','orders','vendors','promos','approvals','markets','zones','rates','settings','group-buy','disputes-payouts','cleaning'];
+  const validTabs: Tab[] = ['reports','orders','vendors','promos','approvals','markets','zones','rates','settings','group-buy','disputes-payouts','cleaning','partners'];
   const [tab, setTabState] = useState<Tab>(tabParam && validTabs.includes(tabParam) ? tabParam : 'reports');
 
   const setTab = (t: Tab) => {
@@ -112,6 +112,9 @@ export default function AdminDashboard() {
   const [vendors, setVendors] = useState<Vendor[]>([]);
   const [promos, setPromos] = useState<PromoCode[]>([]);
   const [markets, setMarkets] = useState<MarketWithRunDays[]>([]);
+  const [partnerApps, setPartnerApps] = useState<any[]>([]);
+  const [loadingPartners, setLoadingPartners] = useState(false);
+  const [updatingPartner, setUpdatingPartner] = useState<string | null>(null);
   const [editingMarket, setEditingMarket] = useState<MarketWithRunDays | null>(null);
   const [savingMarket, setSavingMarket] = useState(false);
   const [showAddMarket, setShowAddMarket] = useState(false);
@@ -142,6 +145,7 @@ export default function AdminDashboard() {
     if (tab === 'vendors' && vendors.length === 0) loadVendors();
     if (tab === 'promos' && promos.length === 0) loadPromos();
     if (tab === 'markets' && markets.length === 0) loadMarkets();
+    if (tab === 'partners' && partnerApps.length === 0) loadPartnerApps();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab]);
 
@@ -171,6 +175,31 @@ export default function AdminDashboard() {
       setVendors(data);
     } catch {
       showToast('Failed to load vendors', 'error');
+    }
+  };
+
+  const loadPartnerApps = async () => {
+    setLoadingPartners(true);
+    try {
+      const { data } = await axios.get('/partners/admin');
+      setPartnerApps(data);
+    } catch {
+      showToast('Failed to load partnership applications', 'error');
+    } finally {
+      setLoadingPartners(false);
+    }
+  };
+
+  const handlePartnerStatusUpdate = async (id: string, status: string) => {
+    setUpdatingPartner(id);
+    try {
+      await axios.patch(`/partners/admin/${id}`, { status });
+      setPartnerApps(prev => prev.map(a => a.id === id ? { ...a, status } : a));
+      showToast(`Partnership application updated`, 'success');
+    } catch {
+      showToast('Failed to update partnership application status', 'error');
+    } finally {
+      setUpdatingPartner(null);
     }
   };
 
@@ -402,6 +431,7 @@ export default function AdminDashboard() {
           { key: 'group-buy', label: 'Group Buys', icon: <Users size={14} /> },
           { key: 'disputes-payouts', label: 'Disputes & Payouts', icon: <ClipboardList size={14} /> },
           { key: 'cleaning', label: 'Cleaning', icon: <Sparkles size={14} /> },
+          { key: 'partners', label: 'Partners', icon: <Users size={14} /> },
           { key: 'settings', label: 'Settings', icon: <Settings size={14} /> },
         ] as { key: Tab; label: string; icon?: React.ReactNode }[]).map(({ key, label, icon }) => (
           <button key={key} onClick={() => setTab(key)}
@@ -897,6 +927,74 @@ export default function AdminDashboard() {
       )}
 
       {/* ── Settings Tab ── */}
+      {tab === 'partners' && (
+        <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6 space-y-4">
+          <div>
+            <h2 className="text-lg font-bold text-gray-900">Partnership Applications</h2>
+            <p className="text-sm text-gray-500 mt-0.5">Review and manage logistics, corporate, and community partnership requests</p>
+          </div>
+          {loadingPartners ? (
+            <div className="py-12 flex justify-center"><Loader2 className="animate-spin text-primary" size={24} /></div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead className="bg-gray-50 border-b border-gray-100">
+                  <tr>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Partner Details</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Type</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Proposal</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">Date</th>
+                    <th className="px-5 py-3 text-right font-medium text-gray-500">Action</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-50">
+                  {partnerApps.map((app: any) => (
+                    <tr key={app.id} className="hover:bg-gray-50 align-top">
+                      <td className="px-5 py-3 space-y-1">
+                        <p className="font-semibold text-gray-900">{app.fullName}</p>
+                        <p className="text-xs text-gray-500">{app.email}</p>
+                        <p className="text-xs text-gray-500">{app.phone}</p>
+                        {app.company && <p className="text-xs text-indigo-600 font-medium">Org: {app.company}</p>}
+                      </td>
+                      <td className="px-5 py-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold bg-primary/10 text-primary uppercase">
+                          {app.partnerType}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3 text-xs text-gray-600 max-w-sm whitespace-pre-wrap leading-relaxed">
+                        {app.message || '—'}
+                      </td>
+                      <td className="px-5 py-3 text-gray-400 text-xs whitespace-nowrap">
+                        {new Date(app.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="px-5 py-3 text-right">
+                        <select
+                          value={app.status}
+                          disabled={updatingPartner === app.id}
+                          onChange={e => handlePartnerStatusUpdate(app.id, e.target.value)}
+                          className={cn('text-xs border rounded-lg px-2 py-1.5 appearance-none font-semibold disabled:opacity-50',
+                            app.status === 'APPROVED' ? 'border-green-200 bg-green-50 text-green-700' :
+                            app.status === 'REJECTED' ? 'border-red-200 bg-red-50 text-red-700' :
+                            'border-amber-200 bg-amber-50 text-amber-700'
+                          )}
+                        >
+                          <option value="PENDING">PENDING</option>
+                          <option value="APPROVED">APPROVED</option>
+                          <option value="REJECTED">REJECTED</option>
+                        </select>
+                      </td>
+                    </tr>
+                  ))}
+                  {partnerApps.length === 0 && (
+                    <tr><td colSpan={5} className="px-5 py-12 text-center text-gray-400">No partnership applications found</td></tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
       {tab === 'settings' && (
         <div className="bg-white rounded-xl border border-gray-100 shadow-sm p-6">
           <h2 className="text-lg font-bold text-gray-900 mb-6">Platform Settings</h2>

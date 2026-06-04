@@ -54,6 +54,7 @@ const GroupBuyDetail      = lazy(() => import('./pages/GroupBuyDetail'));
 const About               = lazy(() => import('./pages/About'));
 const Partner             = lazy(() => import('./pages/Partner'));
 const Terms               = lazy(() => import('./pages/Terms'));
+const BecomeVendor        = lazy(() => import('./pages/BecomeVendor'));
 
 function PageLoader() {
   return (
@@ -121,6 +122,7 @@ function App() {
                     <Route path="/about" element={<About />} />
                     <Route path="/partner" element={<Partner />} />
                     <Route path="/terms" element={<Terms />} />
+                    <Route path="/become-vendor" element={<RequireAuth><BecomeVendor /></RequireAuth>} />
                   </Route>
                 </Routes>
               </Suspense>

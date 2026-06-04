@@ -1,7 +1,10 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import axios from 'axios';
 import { Users, Truck, Briefcase, CheckCircle, Loader2, Sparkles } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
 
 interface PartnerType {
   id: string;
@@ -13,6 +16,8 @@ interface PartnerType {
 
 export default function Partner() {
   const { showToast } = useToast();
+  const navigate = useNavigate();
+  const { user } = useAuth();
   const [partnerType, setPartnerType] = useState('logistics');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
@@ -65,18 +70,34 @@ export default function Partner() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!user) {
+      showToast('Please sign in to submit a partnership proposal.', 'warning');
+      navigate('/login', { state: { from: '/partner' } });
+      return;
+    }
     if (!fullName || !email || !phone) {
       showToast('Please fill in all required fields.', 'warning');
       return;
     }
 
     setIsSubmitting(true);
-    // Simulate API request
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      await axios.post('/partners/apply', {
+        partnerType: partnerType.toUpperCase(),
+        fullName,
+        email,
+        phone,
+        company: company || undefined,
+        message: message || undefined
+      });
       setSubmitted(true);
       showToast('Partnership proposal submitted successfully!', 'success');
-    }, 1800);
+    } catch (err: any) {
+      const msg = err.response?.data?.message || 'Failed to submit application. Please try again.';
+      showToast(msg, 'error');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
