@@ -6,6 +6,7 @@ import { ToastProvider } from './context/ToastContext';
 import ToastContainer from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import MainLayout from './layouts/MainLayout';
+import AdminLayout from './layouts/AdminLayout';
 import Unauthorized from './pages/Unauthorized';
 
 function RequireAuth({ children }: { children: React.ReactNode }) {
@@ -108,12 +109,7 @@ function App() {
                     {/* Artisan dashboard — ARTISAN or ADMIN only */}
                     <Route path="/artisan-dashboard" element={<RequireRole roles={['ARTISAN','ADMIN']}><ArtisanDashboard /></RequireRole>} />
 
-                    {/* Admin-only routes */}
-                    <Route path="/admin" element={<RequireRole roles={['ADMIN']}><AdminDashboard /></RequireRole>} />
-                    <Route path="/admin/vendors/create"   element={<RequireRole roles={['ADMIN']}><AdminVendorCreate /></RequireRole>} />
-                    <Route path="/admin/artisans/create"  element={<RequireRole roles={['ADMIN']}><AdminArtisanCreate /></RequireRole>} />
-                    <Route path="/admin/products/create"  element={<RequireRole roles={['ADMIN']}><AdminProductCreate /></RequireRole>} />
-                    <Route path="/admin/shortlets/create" element={<RequireRole roles={['ADMIN']}><AdminShortletCreate /></RequireRole>} />
+                    {/* Admin routes — handled separately below via AdminLayout */}
 
                     {/* Group Buy */}
                     <Route path="/group-buy" element={<GroupBuyList />} />
@@ -130,6 +126,15 @@ function App() {
                     <Route path="/become-vendor" element={<RequireAuth><BecomeVendor /></RequireAuth>} />
                     <Route path="/help" element={<HelpCenter />} />
                     <Route path="/delivery-areas" element={<DeliveryAreas />} />
+                  </Route>
+
+                  {/* ── Admin routes — own layout, no consumer nav ── */}
+                  <Route element={<RequireRole roles={['ADMIN']}><AdminLayout /></RequireRole>}>
+                    <Route path="/admin" element={<AdminDashboard />} />
+                    <Route path="/admin/vendors/create"   element={<AdminVendorCreate />} />
+                    <Route path="/admin/artisans/create"  element={<AdminArtisanCreate />} />
+                    <Route path="/admin/products/create"  element={<AdminProductCreate />} />
+                    <Route path="/admin/shortlets/create" element={<AdminShortletCreate />} />
                   </Route>
                 </Routes>
               </Suspense>
